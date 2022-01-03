@@ -1,0 +1,90 @@
+---
+title: "Include Fulcrum data in preliminary mrmr analysis"
+author: "Roland Knapp"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+Data from the most recent field season may be available only in the Fulcrum database and not yet be appended to tables in the amphibians database. If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying the following code chunks into the relevant "xxxxx_createdata_mrmr.Rmd" file and executing all code chunks in that Rmd file. 
+
+For authorized users, create the necessary .csv files from the Fulcrum database as follows: 
+
+* From the Fulcrum app dashboard, click the "View Records" icon for the Survey table. Click the "Custom Filters" icon and filter by the appropriate site id(s). Click the "Download Data" button. In the "Download Options" window that opens, set format = CSV, Record Links = Record ID, and Media Fields = File ID. Click "Start", then "Download Data". When download is complete, extract the CSV files from the ZIP file.
+* Rename survey.csv to survey_siteid.csv, survey_description.csv to survey_description_siteid.csv, and survey_amphibian_capture.csv to survey_amphibian_capture_siteid.csv. For each file name, "siteid" is a placeholder for the 5-digit site id. In all three CSV files, rename the "_record_id" column label to "record_id". Move the three files to the project's data/raw/current_year/ directory. * If frogs were translocated and/or reintroduced to the site in the current year, return to the Fulcrum app dashboard and click the "View Records" icon for the Relocate table. Click the "Custom Filters" icon and filter by the appropriate site id(s). Click the "Download Data" button. In the "Download Options" window that opens, set format = CSV, Record Links = Record ID, and Media Fields = File ID. Click "Start", then "Download Data". When download is complete, extract the CSV files from the ZIP file.
+* Rename relocate.csv to relocate_siteid.csv, and relocate_amphibians.csv to relocate_amphibians_siteid.csv. For each file name, "siteid" is a placeholder for the 5-digit site id. In both CSV files, rename the "_record_id" column label to "record_id", and move both files to the project's data/raw/current_year/ directory. 
+* In the following code chunks, rename all csv files and R objects by replacing "74976" with the relevant site_id. 
+
+## Create current-year survey, capture, and relocate datasets for appending
+Copy the following code chunk and insert immediately following the "load_packages" code chunk in the relevant "xxxxx_createdata_mrmr.Rmd" file. 
+```{r create_append_files}
+visit_74976 <- read_csv(here::here("data", "raw", "current_year", "survey_74976.csv")) %>% 
+  select(record_id, site_id, visit_date, visit_status, visit_comment) %>% 
+  rename(comment_visit = visit_comment)
+
+survey_74976 <- read_csv(here::here("data", "raw", "current_year", "survey_description_74976.csv")) %>% 
+  select(record_id, survey_type, survey_description, wind, sky, air_temp, duration, survey_quality, general_survey_comment) %>% 
+  filter(survey_type == "cmr") %>% 
+  rename(description = survey_description, comment_survey = general_survey_comment)
+
+amphibian_capture_74976 <- read_csv(here::here("data", "raw", "current_year", "survey_amphibian_capture_74976.csv")) %>% 
+  filter(method == "cmr") %>% 
+  rename(comment_capture = capture_comment) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
+  replace_na(list(species = "ramu", capture_life_stage = "adult")) %>% 
+  select(record_id, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_capture)
+
+relocate_74976 <- read_csv(here::here("data", "raw", "current_year", "relocate_74976.csv")) %>% # after testing, remove "test" relocate files from data>raw>currentyear directory
+  filter(relocate_type == "translocation") %>% 
+  rename(comment_relocate = relocate_comments,
+         type = relocate_type) %>% 
+  select(record_id, release_location, type, release_date, comment_relocate)
+
+relocate_amphibians_74976 <- read_csv(here::here("data", "raw", "current_year", "relocate_amphibians_74976.csv")) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
+  rename(relocate_amphibians_comments = comments) %>% 
+  select(record_id, pit_tag_ref, tag_new, collection_stage, sex, length, weight, swab_id, relocate_amphibians_comments)
+
+survey_append_74976 <- visit_74976 %>% 
+  inner_join(survey_74976, by = c("record_id")) %>% 
+  select(-record_id)
+
+capture_append_74976 <- visit_74976 %>% 
+  inner_join(survey_74976, by = c("record_id")) %>% 
+  inner_join(amphibian_capture_74976, by = c("record_id")) %>% 
+  select(-record_id)
+
+translocation_append_74976 <- relocate_74976 %>% 
+  inner_join(relocate_amphibians_74976, by = c("record_id")) %>% 
+  rename(site_id = release_location, 
+         capture_life_stage = collection_stage) %>% 
+  select(-record_id)
+```
+```{r}
+rm(amphibian_capture_74976, relocate_74976, relocate_amphibians_74976, survey_74976, visit_74976)
+```
+
+### Append current-year translocation records
+Copy the following code chunk and insert immediately following the "translocation_relevant_columns" code chunk in the "xxxxx_createdata_mrmr.Rmd" file.
+```{r append_currentyear_translocation_records}
+translocation_append_74976 <- translocation_append_74976 %>% 
+  filter(type == "translocation") %>% 
+  select(site_id, release_date, type, pit_tag_ref, tag_new, sex, length, weight, swab_id) %>% bind_rows(translocation_74976)
+```
+
+### Append current-year survey records
+Copy the following code chunk and insert immediately following the "retrieve_survey_data" code chunk in the "xxxxx_createdata_mrmr.Rmd" file.
+```{r append_currentyear_survey_records}
+survey_74976 <- bind_rows(survey_74976, survey_append_74976) %>% 
+  arrange(visit_date, desc(site_id)) %>% 
+  select(site_id, visit_date, visit_status, survey_type, description, survey_quality, wind, sky, air_temp, duration, comment_visit, comment_survey)
+```
+
+### Append current-year capture records
+Copy the following code chunk and insert immediately following the "retrieve_capture_data" code chunk in the "xxxxx_createdata_mrmr.Rmd" file.
+```{r append_currentyear_capture_records}
+capture_append_74976 <- capture_append_74976 %>% 
+  select(site_id, visit_date, visit_status, survey_type, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_visit, comment_survey, comment_capture) %>% 
+  bind_rows(capture_74976)
+```
+

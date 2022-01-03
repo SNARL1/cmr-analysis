@@ -1,0 +1,135 @@
+---
+title: "74976 - Analyze capture-mark-recapture data using *mrmr*"
+author: "Roland Knapp"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+This notebook analyzes capture-mark-recapture data using the *mrmr* package. The code creates the required survey, capture, and translocation data frames from saved CSV files (created by xxxxx_createdata_mrmr.Rmd), checks the datasets, fits the model, evaluates potential non-convergence of the MCMC algorithm, and visualizes model results. 
+
+## Install latest versions of cmdstanr, cmdstan, and mrmr packages
+Run only if updated versions were released since previous install
+```{r install_stan_packages, message=FALSE, warning=FALSE}
+# install cmdstanr and cmdstan
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+cmdstanr::install_cmdstan()
+
+# install mrmr from this branch
+remotes::install_github("SNARL1/mrmr")
+```
+
+## Load required packages
+```{r load_packages}
+library(dplyr)
+library(readr)
+library(tibble)
+library(cmdstanr)
+library(mrmr)
+library(patchwork)
+```
+
+## Create required data frames
+```{r create_data_objects}
+captures <- read_csv(here::here("data", "clean", "74976_capture.csv"))
+surveys <- read_csv(here::here("data", "clean", "74976_survey.csv"))
+translocations <- read_csv(here::here("data", "clean", "74976_translocation.csv"))
+```
+
+## Check datasets
+```{r check_data}
+data_74976 <- clean_data(captures = captures, surveys = surveys, translocations = translocations)
+```
+
+## Fit model
+```{r fit_model}
+model_74976 <- fit_model(
+                    data = data_74976, 
+                    chains = 4, 
+                    parallel_chains = 4, 
+                    cpp_options = list(stan_threads = TRUE),
+                    threads_per_chain = 2, 
+                    adapt_delta = 0.99) # comment out this line unless needed to resolve divergent transitions
+```
+* Running model with default adapt_delta (0.8) resulted in one divergent transition (1/4000).
+* Increase of adapt_delta to 0.99 resulted in zero divergent transitions. 
+
+### Save/retrieve model object
+This step prevents having to rerun the model in the event of a crash during model visualizations in subsequent code blocks. Model files can be large, so this saves the file in a compressed format.
+```{r write_model}
+write_rds(model_74976, here::here("out", "model", "74976_model.rds"), "xz", compression = 9L)
+```
+```{r read_model}
+model_74976 <- read_rds(here::here("out", "model", "74976_model.rds"))
+```
+
+### Diagnose potential non-convergence of the MCMC algorithm
+Inspect traceplots and parameter summary table. In table, are any R~hat~ values $\ge 1.01$?
+```{r model_diagnostics}
+pars_to_plot <- c('alpha_lambda', 
+                  'sigma_lambda', 
+                  'beta_phi', 
+                  'sigma_phi', 
+                  'beta_detect')
+bayesplot::mcmc_trace(model_74976$m_fit$draws(pars_to_plot))
+
+model_74976$m_fit$summary(pars_to_plot)
+```
+
+## Visualize model results
+### Default plots
+Custom plots (produced in next code chunk: ""plots_custom") are often easier to interpret than the default plots produced by this code chunk.
+```{r model_visualize}
+# plot_model(model_74976, what = "abundance")
+# plot_model(model_74976, what = "recruitment")
+# plot_model(model_74976, what = "survival")
+```
+
+### Customize plots
+```{r plots_custom, fig.height=8, fig.width=7}
+library(ggplot2)
+p1 <- plot_model(model_74976, what = "survival") 
+p1 <- p1 + ggtitle("A. Survival of translocated frogs") +
+    expand_limits(y = 0) +
+    theme(legend.position = "none")
+  
+p2 <- plot_model(model_74976, what = "abundance") 
+p2 <- p2 + ggtitle("B. Population size") +
+    ylab("Number of adults") + 
+    expand_limits(y = 0)
+  
+p3 <- plot_model(model_74976, what = "recruitment")
+p3 <- p3 + ggtitle("C. Recruitment") +
+    ylab("Number of adults")
+  
+p1 / p2 / p3
+```
+
+### Save custom plots
+```{r save_plot}
+ggsave(here::here("out", "figures", "74976_mrmr_plots.png"), width = 6.5, height = 7.2)
+```
+
+## Create survival tables
+Only the cohort-level survival table is displayed (individual-level survival can be a large table).
+```{r survival_tables}
+survival_cohort <- survival_table(model_74976, by_cohort = TRUE)
+survival_cohort
+
+survival_ind <- survival_table(model_74976, by_individual = TRUE) 
+```
+
+### Save survival tables
+```{r save_survival_tables}
+survival_cohort %>% write_csv(here::here("out", "tables", "74976_survival_cohort.csv"))
+survival_ind %>% write_csv(here::here("out", "tables", "74976_survival_ind.csv"))
+```
+
+## Summary of current status of frog recovery at this site
+* Unusually high 1-year survival of the 2018 cohort of translocated frogs (>0.9).
+* Successful reproduction (as evidenced by first-year tadpoles) observed in 2019, 2020, and 2021. 
+  + 2019 cohort contained at least 250 individuals, based on count conducted on 09-Sep-2019. Cohort appeared to experience relatively low overwinter survival (perhaps due to the heavy 2019 snow year --> short 2019 summer --> small tadpole size going into 2020 winter), with approximately 25 second-year tadpoles counted on 20-Aug-2020. 5 metamorphs seen during the August 2020 CMR. 
+  + 2020 cohort contained at least 320 individuals, based on count conducted on 20-Aug-2020. Tadpole count on 25-Jun-2021 indicated 386 second-year animals, suggesting high overwinter survival of first-year tadpoles compared to that shown by 2019 cohort (perhaps due to light 2020 snow year --> long 2020 summer --> large tadpole size going into 2021 winter). 
+  + 2021 cohort contained at least 305 individuals, based on count conducted on 18-Aug-2021. 
+  + Many subadults counted during mid-August 2021 survey (203), compared to very few in late-summer 2020. 
+* First new recruits into the adult population (5) captured during mid-August 2021 CMR survey. Likely all from 2019 cohort, but large size range (41-50 mm) suggests that these adults were from animals that metamorphosed in both late-summer 2020 and early-summer 2021. 
+* Population seems likely to become firmly established in next few years. As of mid-August 2021, frog population extends from Lower Pool outlet to 72973 (uppermost pond - colonized by adults and metamorphs since original translocation in 2018). All reproduction is occurring in 74976. 
