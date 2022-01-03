@@ -20,7 +20,7 @@ All sites are referenced only by 5-digit unique identifiers. No site names or x-
 
 Code: [MIT](https://choosealicense.com/licenses/mit/) | year: 2022, copyright holder: Roland Knapp
 
-Data: [CC-BY-4.0](http://creativecommons.org/licenses/by/4.0/)
+Data: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 See LICENSE.md file for details. 
 
