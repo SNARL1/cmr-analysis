@@ -1,9 +1,13 @@
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
 Capture-mark-recapture analyses associated with mountain yellow-legged frog recovery efforts
 ----------------------------------------
 
-### Author of this repository
+### Authors of this repository
 
-Roland Knapp (roland.knapp@ucsb.edu) [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--1954--2745-green.svg)](http://orcid.org/0000-0002-1954-2745)
+Roland A. Knapp (roland.knapp(at)ucsb.edu) [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--1954--2745-green.svg)](http://orcid.org/0000-0002-1954-2745)
+
+Thomas C. Smith [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0001--7908--438X-green.svg)](http://orcid.org/0000-0001-7908-438X)
 
 ### Overview of contents
 
@@ -22,9 +26,9 @@ Code: [MIT](https://choosealicense.com/licenses/mit/) | year: 2022, copyright ho
 
 Data: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
-See LICENSE.md file for details. 
+See [LICENSE](https://github.com/SNARL1/cmr-analysis/blob/main/LICENSE.md) for details. 
 
 ### Contact
 
-Roland Knapp, Research Biologist, University of California Sierra Nevada Aquatic Research Laboratory, Mammoth Lakes, CA 93546 USA; rolandknapp@ucsb.edu,
+Roland Knapp, Research Biologist, University of California Sierra Nevada Aquatic Research Laboratory, Mammoth Lakes, CA 93546 USA; rolandknapp(at)ucsb.edu,
 <https://mountainlakesresearch.com/roland-knapp/>
