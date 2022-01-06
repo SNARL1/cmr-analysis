@@ -14,7 +14,7 @@ Run only if updated versions were released since previous install
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 cmdstanr::install_cmdstan()
 
-# install mrmr from this branch
+# install mrmr
 remotes::install_github("SNARL1/mrmr")
 ```
 
