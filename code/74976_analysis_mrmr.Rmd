@@ -77,11 +77,11 @@ model_74976$m_fit$summary(pars_to_plot)
 
 ## Visualize model results
 ### Default plots
-Custom plots (produced in next code chunk: ""plots_custom") are often easier to interpret than the default plots produced by this code chunk.
+Note: Custom plots (produced in next code chunk: "plots_custom") are often easier to interpret than the default plots produced by this code chunk.
 ```{r model_visualize}
-# plot_model(model_74976, what = "abundance")
-# plot_model(model_74976, what = "recruitment")
-# plot_model(model_74976, what = "survival")
+plot_model(model_74976, what = "abundance")
+plot_model(model_74976, what = "recruitment")
+plot_model(model_74976, what = "survival")
 ```
 
 ### Customize plots
@@ -123,13 +123,3 @@ survival_ind <- survival_table(model_74976, by_individual = TRUE)
 survival_cohort %>% write_csv(here::here("out", "tables", "74976_survival_cohort.csv"))
 survival_ind %>% write_csv(here::here("out", "tables", "74976_survival_ind.csv"))
 ```
-
-## Summary of current status of frog recovery at this site
-* Unusually high 1-year survival of the 2018 cohort of translocated frogs (>0.9).
-* Successful reproduction (as evidenced by first-year tadpoles) observed in 2019, 2020, and 2021. 
-  + 2019 cohort contained at least 250 individuals, based on count conducted on 09-Sep-2019. Cohort appeared to experience relatively low overwinter survival (perhaps due to the heavy 2019 snow year --> short 2019 summer --> small tadpole size going into 2020 winter), with approximately 25 second-year tadpoles counted on 20-Aug-2020. 5 metamorphs seen during the August 2020 CMR. 
-  + 2020 cohort contained at least 320 individuals, based on count conducted on 20-Aug-2020. Tadpole count on 25-Jun-2021 indicated 386 second-year animals, suggesting high overwinter survival of first-year tadpoles compared to that shown by 2019 cohort (perhaps due to light 2020 snow year --> long 2020 summer --> large tadpole size going into 2021 winter). 
-  + 2021 cohort contained at least 305 individuals, based on count conducted on 18-Aug-2021. 
-  + Many subadults counted during mid-August 2021 survey (203), compared to very few in late-summer 2020. 
-* First new recruits into the adult population (5) captured during mid-August 2021 CMR survey. Likely all from 2019 cohort, but large size range (41-50 mm) suggests that these adults were from animals that metamorphosed in both late-summer 2020 and early-summer 2021. 
-* Population seems likely to become firmly established in next few years. As of mid-August 2021, frog population extends from Lower Pool outlet to 72973 (uppermost pond - colonized by adults and metamorphs since original translocation in 2018). All reproduction is occurring in 74976. 
