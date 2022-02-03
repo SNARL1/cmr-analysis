@@ -28,11 +28,12 @@ Not all sites have received frog translocations. Run or skip the following code 
 Users without credentials can use CSV file created in code chunk "read_raw_translocation_data" below as a starting point. 
 ```{r}
 con = dbConnect(dbDriver("PostgreSQL"),
-                user = rstudioapi::askForPassword("user name"),
-                password = rstudioapi::askForPassword("password"),
                 host = Sys.getenv("host"), 
                 port = Sys.getenv("port"), 
-                dbname = Sys.getenv("dbname"))
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
 ```
 
 ### Retrieve translocation data from database
@@ -129,11 +130,12 @@ translocation_74976 <- read_csv(here::here("data", "clean", "74976_translocation
 Users without credentials can use CSV file created in code chunk "read_raw_survey_data" below as a starting point. 
 ```{r}
 con = dbConnect(dbDriver("PostgreSQL"),
-                user = rstudioapi::askForPassword("user name"),
-                password = rstudioapi::askForPassword("password"),
                 host = Sys.getenv("host"), 
                 port = Sys.getenv("port"), 
-                dbname = Sys.getenv("dbname"))
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
 ```
 
 ### Retrieve survey data from database
@@ -238,11 +240,12 @@ survey_74976 <- read_csv(here::here("data", "clean", "74976_survey.csv"))
 Users without credentials can use CSV file created in code chunk "read_raw_capture_data" below as a starting point. 
 ```{r}
 con = dbConnect(dbDriver("PostgreSQL"),
-                user = rstudioapi::askForPassword("user name"),
-                password = rstudioapi::askForPassword("password"),
                 host = Sys.getenv("host"), 
                 port = Sys.getenv("port"), 
-                dbname = Sys.getenv("dbname"))
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
 ```
 
 ### Retrieve frog capture data from database
