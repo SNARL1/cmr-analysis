@@ -280,9 +280,21 @@ where release_siteid1 = 74976 and
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGJEaXNjb25uZWN0KGNvbilcbnJtKGNvbilcbmBgYCJ9 -->
-<pre class="r"><code>dbDisconnect(con)
-rm(con)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGJEaXNjb25uZWN0KGNvbilcbmBgYCJ9 -->
+<pre class="r"><code>dbDisconnect(con)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFRSVUVcbiJ9 -->
+<pre><code>[1] TRUE</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiV2FybmluZyBtZXNzYWdlczpcbjE6IEluIHBvc3RncmVzcWxFeGVjU3RhdGVtZW50KGNvbm4sIHN0YXRlbWVudCwgLi4uKSA6XG4gIFJTLURCSSBkcml2ZXIgd2FybmluZzogKChudWxsKSlcbjI6IEluIHBvc3RncmVzcWxFeGVjU3RhdGVtZW50KGNvbm4sIHN0YXRlbWVudCwgLi4uKSA6XG4gIFJTLURCSSBkcml2ZXIgd2FybmluZzogKChudWxsKSlcbiJ9 -->
+<pre><code>Warning messages:
+1: In postgresqlExecStatement(conn, statement, ...) :
+  RS-DBI driver warning: ((null))
+2: In postgresqlExecStatement(conn, statement, ...) :
+  RS-DBI driver warning: ((null))</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucm0oY29uKVxuYGBgIn0= -->
+<pre class="r"><code>rm(con)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -321,25 +333,16 @@ rm(con)</code></pre>
 <p>Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved. Run lines of code one at a time to allow easy evaluation of messages and outputs.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDaGVjayBmb3IgcmVjb3JkcyB3aGVyZSBwaXRfdGFnX3JlZiBpcyBOVUxMXG5hc3NlcnRfdGhhdChub05BKHRyYW5zbG9jYXRpb25fNzQ5NzYkcGl0X3RhZ19yZWYpKVxuXG4jIENoZWNrIGZvciByZWNvcmRzIGNvbnRhaW5pbmcgcGl0IHRhZ3Mgc2hvcnRlciB0aGFuIDE1IGNoYXJhY3RlcnNcbmFzc2VydF90aGF0KCFhbnkobmNoYXIodHJhbnNsb2NhdGlvbl83NDk3NiRwaXRfdGFnX3JlZikgIT0gMTUpKVxuXG4jIENoZWNrIGZvciByZWNvcmRzIGNvbnRhaW5pbmcgcGl0IHRhZ3MgdGhhdCBlbmQgd2l0aCBcIi4xXCIgKGtub3duIHRvIGJlIHBvdGVudGlhbGx5IGluY29ycmVjdCkgXG5hc3NlcnRfdGhhdCghYW55KHN0cl9kZXRlY3QodHJhbnNsb2NhdGlvbl83NDk3NiRwaXRfdGFnX3JlZiwgXCJcXFxcLjEkXCIpKSlcblxuIyBDaGVjayBmb3IgcmVjb3JkcyBvZiBzdWJhZHVsdCBmcm9nc1xudHJhbnNsb2NhdGlvbl83NDk3NiAlPiUgZHJvcF9uYShsZW5ndGgpICU+JSBmaWx0ZXIobGVuZ3RoIDwgNDApXG5cbiMgQ2hlY2sgZm9yIGR1cGxpY2F0ZSBwaXQgdGFncyBvbiBlYWNoIGRhdGVcbnRyYW5zbG9jYXRpb25fNzQ5NzYgJT4lIGNvdW50KHJlbGVhc2VfZGF0ZSwgcGl0X3RhZ19yZWYpICU+JSBmaWx0ZXIobiA+IDEpXG5cbiMgQXJlIHJlbGVhc2UgZGF0ZXMgY29ycmVjdD9cbnRyYW5zbG9jYXRpb25fNzQ5NzYgJT4lIGRpc3RpbmN0KHJlbGVhc2VfZGF0ZSkgJT4lIGdsaW1wc2UoKVxuYGBgIn0= -->
-<pre class="r"><code># Check for records where pit_tag_ref is NULL
-assert_that(noNA(translocation_74976$pit_tag_ref))
-
-# Check for records containing pit tags shorter than 15 characters
-assert_that(!any(nchar(translocation_74976$pit_tag_ref) != 15))
-
-# Check for records containing pit tags that end with &quot;.1&quot; (known to be potentially incorrect) 
-assert_that(!any(str_detect(translocation_74976$pit_tag_ref, &quot;\\.1$&quot;)))
-
-# Check for records of subadult frogs
-translocation_74976 %&gt;% drop_na(length) %&gt;% filter(length &lt; 40)
-
-# Check for duplicate pit tags on each date
-translocation_74976 %&gt;% count(release_date, pit_tag_ref) %&gt;% filter(n &gt; 1)
-
-# Are release dates correct?
-translocation_74976 %&gt;% distinct(release_date) %&gt;% glimpse()</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBBcmUgcmVsZWFzZSBkYXRlcyBjb3JyZWN0P1xudHJhbnNsb2NhdGlvbl83NDk3NiAlPiUgZGlzdGluY3QocmVsZWFzZV9kYXRlKSAlPiUgZ2xpbXBzZSgpXG5cbmBgYCJ9 -->
+<pre class="r"><code># Are release dates correct?
+translocation_74976 %&gt;% distinct(release_date) %&gt;% glimpse()
+</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUm93czogMlxuQ29sdW1uczogMVxuJCByZWxlYXNlX2RhdGUgPGRhdGU+IDIwMTgtMDctMTgsIDIwMjAtMDctMDZcbiJ9 -->
+<pre><code>Rows: 2
+Columns: 1
+$ release_date &lt;date&gt; 2018-07-18, 2020-07-06</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
@@ -427,9 +430,14 @@ where (site_id = 74976 or
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGJEaXNjb25uZWN0KGNvbilcbnJtKGNvbilcbmBgYCJ9 -->
-<pre class="r"><code>dbDisconnect(con)
-rm(con)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGJEaXNjb25uZWN0KGNvbilcbmBgYCJ9 -->
+<pre class="r"><code>dbDisconnect(con)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFRSVUVcbiJ9 -->
+<pre><code>[1] TRUE</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucm0oY29uKVxuYGBgIn0= -->
+<pre class="r"><code>rm(con)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -482,13 +490,13 @@ rm(con)</code></pre>
 <p>Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDaGVjayBmb3IgZHVwbGljYXRlIHN1cnZleSBkYXRlc1xuc3VydmV5Xzc0OTc2X21ybXIgJT4lIGNvdW50KHNpdGVfaWQsIHN1cnZleV9kYXRlKSAlPiUgZmlsdGVyKG4gPiAxKVxuXG4jIENoZWNrIGZvciBzaXRlcyB0aGF0IHdlcmUgdW5zdWl0YWJsZSBmb3Igc3VydmV5XG5zdXJ2ZXlfNzQ5NzZfbXJtciAlPiUgZmlsdGVyKHZpc2l0X3N0YXR1cyAhPSBcInN1aXRhYmxlXCIpXG5gYGAifQ== -->
-<pre class="r"><code># Check for duplicate survey dates
-survey_74976_mrmr %&gt;% count(site_id, survey_date) %&gt;% filter(n &gt; 1)
-
-# Check for sites that were unsuitable for survey
-survey_74976_mrmr %&gt;% filter(visit_status != &quot;suitable&quot;)</code></pre>
-<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6MCwibmNvbCI6MTEsInN1bW1hcnkiOnsiRGVzY3JpcHRpb24iOlsiZGYgWzAgw5cgMTFdIl19fSwicmRmIjoiSDRzSUFBQUFBQUFBQTVWU3kwN0RNQkIwSHFiVUlSV0M3eUFYTG54QXhRY2drSHFMakdQQWFtSUgyMm5KenhjMmoxV2FxQmNpUmJzZXplNTRKbm5aN2g3WmpoRkNJaElISVlrb3RJUyt2VDQvUEJFU2gzQUlTRXpXWGYwQjBqMDBDYndwNlo5b005UVprWXFTT3dmTjdSa1liN21YVUU4alR2NVIwOHY0WEZUelNxSm9Nb0lycDd6TVZURWVFOWZZZzJ6em9ydktIUEp0amRETlFjRlk3anozalVOYUlaMndxdmJLNkJIYWpKUGZEUytWYjlIbVVXbVVpOXdlNGV1aXNmeHNPQldtcXFUMmVhK0ZHeEVjTmk4TXJxMDVabWd5blJJSWZ4ZEpNN0RIc3c4TDFDSHYyWnFWNlUzQWtyRDdsblF4SE5nRmNEZGx4blB4SmNXKzAyYzlZL282eXo0WlZDTzhHeDIzWFVuOXFUUW1UVXYrTGt0MEQvNTZlMWx0bGNaTUdLQXU4OFp6NURGaFNrU0czK24wQjJDR1o0UEZBZ0FBIn0= -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["site_id"],"name":[1],"type":["int"],"align":["right"]},{"label":["survey_date"],"name":[2],"type":["date"],"align":["right"]},{"label":["survey_type"],"name":[3],"type":["chr"],"align":["left"]},{"label":["visit_status"],"name":[4],"type":["chr"],"align":["left"]},{"label":["description"],"name":[5],"type":["chr"],"align":["left"]},{"label":["survey_quality"],"name":[6],"type":["chr"],"align":["left"]},{"label":["wind"],"name":[7],"type":["chr"],"align":["left"]},{"label":["sky"],"name":[8],"type":["chr"],"align":["left"]},{"label":["duration"],"name":[9],"type":["int"],"align":["right"]},{"label":["comment_visit"],"name":[10],"type":["chr"],"align":["left"]},{"label":["comment_survey"],"name":[11],"type":["chr"],"align":["left"]}],"data":[],"options":{"columns":{"min":{},"max":[10],"total":[11]},"rows":{"min":[10],"max":[10],"total":[0]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
@@ -594,9 +602,23 @@ where (site_id = 74976 or
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGJEaXNjb25uZWN0KGNvbilcbnJtKGNvbilcbmBgYCJ9 -->
-<pre class="r"><code>dbDisconnect(con)
-rm(con)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGJEaXNjb25uZWN0KGNvbilcbmBgYCJ9 -->
+<pre class="r"><code>dbDisconnect(con)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFRSVUVcbiJ9 -->
+<pre><code>[1] TRUE</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiV2FybmluZyBtZXNzYWdlczpcbjE6IEluIHBvc3RncmVzcWxFeGVjU3RhdGVtZW50KGNvbm4sIHN0YXRlbWVudCwgLi4uKSA6XG4gIFJTLURCSSBkcml2ZXIgd2FybmluZzogKChudWxsKSlcbjI6IEluIHBvc3RncmVzcWxFeGVjU3RhdGVtZW50KGNvbm4sIHN0YXRlbWVudCwgLi4uKSA6XG4gIFJTLURCSSBkcml2ZXIgd2FybmluZzogKChudWxsKSlcbjM6IEluIHBvc3RncmVzcWxFeGVjU3RhdGVtZW50KGNvbm4sIHN0YXRlbWVudCwgLi4uKSA6XG4gIFJTLURCSSBkcml2ZXIgd2FybmluZzogKChudWxsKSlcbiJ9 -->
+<pre><code>Warning messages:
+1: In postgresqlExecStatement(conn, statement, ...) :
+  RS-DBI driver warning: ((null))
+2: In postgresqlExecStatement(conn, statement, ...) :
+  RS-DBI driver warning: ((null))
+3: In postgresqlExecStatement(conn, statement, ...) :
+  RS-DBI driver warning: ((null))</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucm0oY29uKVxuYGBgIn0= -->
+<pre class="r"><code>rm(con)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -634,51 +656,13 @@ rm(con)</code></pre>
 <p>Run checks before and after data cleaning)</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDaGVjayBmb3IgcmVjb3JkcyB3aGVyZSBwaXRfdGFnX3JlZiBpcyBOVUxMXG5hc3NlcnRfdGhhdChub05BKGNhcHR1cmVfNzQ5NzYkcGl0X3RhZ19yZWYpKVxuXG4jIENoZWNrIGZvciByZWNvcmRzIGNvbnRhaW5pbmcgcGl0IHRhZ3Mgc2hvcnRlciB0aGFuIDE1IGNoYXJhY3RlcnNcbmFzc2VydF90aGF0KCFhbnkobmNoYXIoY2FwdHVyZV83NDk3NiRwaXRfdGFnX3JlZikgIT0gMTUpKVxuXG4jIENoZWNrIGZvciByZWNvcmRzIGNvbnRhaW5pbmcgcGl0IHRhZ3MgdGhhdCBlbmQgd2l0aCBcIi4xXCIgKGtub3duIHRvIGJlIHBvdGVudGlhbGx5IGluY29ycmVjdCkgXG5hc3NlcnRfdGhhdCghYW55KHN0cl9kZXRlY3QoY2FwdHVyZV83NDk3NiRwaXRfdGFnX3JlZiwgXCJcXFxcLjEkXCIpKSlcblxuIyBDaGVjayBmb3IgcmVjb3JkcyB3aGVyZSBzcGVjaWVzICE9IHJhbXVcbmNhcHR1cmVfNzQ5NzYgJT4lIGRyb3BfbmEoc3BlY2llcykgJT4lIGZpbHRlcihzcGVjaWVzICE9IFwicmFtdVwiKVxuXG4jIENoZWNrIGZvciByZWNvcmRzIHdlcmUgc3VydmV5X3R5cGUgPSBzd2FiXG5hc3NlcnRfdGhhdCghYW55KGNhcHR1cmVfNzQ5NzYkc3VydmV5X3R5cGUgPT0gXCJzd2FiXCIpKVxuXG4jIENoZWNrIGZvciByZWNvcmRzIHdoZXJlIGNhcHR1cmVfYW5pbWFsX3N0YXRlIGlzIE5VTExcbmFzc2VydF90aGF0KG5vTkEoY2FwdHVyZV83NDk3NiRjYXB0dXJlX2FuaW1hbF9zdGF0ZSkpXG5cbiMgQ2hlY2sgZm9yIHJlY29yZHMgd2hlcmUgY2FwdHVyZV9hbmltYWxfc3RhdGUgPT0gXCJkZWFkXCJcbmFzc2VydF90aGF0KCFhbnkoY2FwdHVyZV83NDk3NiRjYXB0dXJlX2FuaW1hbF9zdGF0ZSA9PSBcImRlYWRcIikpXG5cbiMgQ2hlY2sgZm9yIHJlY29yZHMgb2Ygc3ViYWR1bHQgZnJvZ3NcbmNhcHR1cmVfNzQ5NzYgJT4lIGRyb3BfbmEobGVuZ3RoKSAlPiUgZmlsdGVyKGxlbmd0aCA8IDQwKVxuXG4jIENoZWNrIGZvciBzaXRlcyB0aGF0IHdlcmUgdW5zdWl0YWJsZSBmb3Igc3VydmV5XG5hc3NlcnRfdGhhdCghYW55KGNhcHR1cmVfNzQ5NzYkdmlzaXRfc3RhdHVzICE9IFwic3VpdGFibGVcIikpXG5cbiMgQ2hlY2sgZm9yIGR1cGxpY2F0ZSBjYXB0dXJlIHJlY29yZHMgb24gZWFjaCBkYXRlXG5jYXB0dXJlXzc0OTc2ICU+JSBjb3VudCh2aXNpdF9kYXRlLCBwaXRfdGFnX3JlZikgJT4lIGZpbHRlcihuID4gMSlcblxuIyBDaGVjayBmb3IgY2FwdHVyZXMgdGhhdCBsYWNrIGFzc29jaWF0ZWQgc3VydmV5c1xuc3VydmV5Xzc0OTc2ICU+JSBcbiAgc2VsZWN0KHN1cnZleV9kYXRlKSAlPiUgXG4gIHJlbmFtZSh2aXNpdF9kYXRlID0gc3VydmV5X2RhdGUpICU+JSBcbiAgcmlnaHRfam9pbihjYXB0dXJlXzc0OTc2LCBieSA9IGMoXCJ2aXNpdF9kYXRlXCIpKSAlPiUgXG4gIGZpbHRlcihpcy5uYSh2aXNpdF9kYXRlKSlcblxuIyBDaGVjayBmb3Igc3VydmV5cyB0aGF0IGxhY2sgYXNzb2NpYXRlZCBjYXB0dXJlc1xuc3VydmV5Xzc0OTc2ICU+JSBcbiAgc2VsZWN0KHN1cnZleV9kYXRlKSAlPiUgXG4gIHJlbmFtZSh2aXNpdF9kYXRlID0gc3VydmV5X2RhdGUpICU+JSBcbiAgcmlnaHRfam9pbihjYXB0dXJlXzc0OTc2LCBieSA9IGMoXCJ2aXNpdF9kYXRlXCIpKSAlPiUgXG4gIGZpbHRlcihpcy5uYShzaXRlX2lkKSlcbmBgYCJ9 -->
-<pre class="r"><code># Check for records where pit_tag_ref is NULL
-assert_that(noNA(capture_74976$pit_tag_ref))
-
-# Check for records containing pit tags shorter than 15 characters
-assert_that(!any(nchar(capture_74976$pit_tag_ref) != 15))
-
-# Check for records containing pit tags that end with &quot;.1&quot; (known to be potentially incorrect) 
-assert_that(!any(str_detect(capture_74976$pit_tag_ref, &quot;\\.1$&quot;)))
-
-# Check for records where species != ramu
-capture_74976 %&gt;% drop_na(species) %&gt;% filter(species != &quot;ramu&quot;)
-
-# Check for records were survey_type = swab
-assert_that(!any(capture_74976$survey_type == &quot;swab&quot;))
-
-# Check for records where capture_animal_state is NULL
-assert_that(noNA(capture_74976$capture_animal_state))
-
-# Check for records where capture_animal_state == &quot;dead&quot;
-assert_that(!any(capture_74976$capture_animal_state == &quot;dead&quot;))
-
-# Check for records of subadult frogs
-capture_74976 %&gt;% drop_na(length) %&gt;% filter(length &lt; 40)
-
-# Check for sites that were unsuitable for survey
-assert_that(!any(capture_74976$visit_status != &quot;suitable&quot;))
-
-# Check for duplicate capture records on each date
-capture_74976 %&gt;% count(visit_date, pit_tag_ref) %&gt;% filter(n &gt; 1)
-
-# Check for captures that lack associated surveys
-survey_74976 %&gt;% 
-  select(survey_date) %&gt;% 
-  rename(visit_date = survey_date) %&gt;% 
-  right_join(capture_74976, by = c(&quot;visit_date&quot;)) %&gt;% 
-  filter(is.na(visit_date))
-
-# Check for surveys that lack associated captures
-survey_74976 %&gt;% 
-  select(survey_date) %&gt;% 
-  rename(visit_date = survey_date) %&gt;% 
-  right_join(capture_74976, by = c(&quot;visit_date&quot;)) %&gt;% 
-  filter(is.na(site_id))</code></pre>
-<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6MCwibmNvbCI6MTMsInN1bW1hcnkiOnsiRGVzY3JpcHRpb24iOlsiZGYgWzAgw5cgMTNdIl19fSwicmRmIjoiSDRzSUFBQUFBQUFBQTRWU3dWTENNQkJOU3d0RHNNaUl2MkV2WHZ3QXhnOXdkTVpiSm9ZQUdkTzBrd1NRbjBlM1RWYWdvME12dS91eSsvcjJKUytMOTBmNlRna2hBNUlsS1Jua2tKTDg3Zlg1NFltUUxJVWlJUmtadC9FTG11YVFGQkNucFBzdUduS2h1WE9Rek03QWJNRzloSGdNZzkwMyt5ZlNLK2RYNWkvRkdGNUpGRk5Fa082VVU1NHRXMGtCR1VFdG1Wckc4aVkwT00vOTFrVnM0cloySncvTUh4cWNtalRRNVBtYVdibENvclkwY3YvTDIwaWhKSExjQ2Q3NHJaVk1xNVZzNmRkSWRZOG4zS2lLNis3WGVEYlUwcXo5SmxhRnFLdEtHczg2alJHY0loaEVSdlFXMFVqZTgyWnM2MzJKL2hRbjg5THYzdVZSY0lxWEt3dXQ0UW92YUVaMTQxVnRnQ1J0bjhXd041ellIakRIVlZ0V0pqWlNmTHA0NjhuWkM4QzgrQ012Z29RQkNoMmlVMkNVTXVoYnJ2bUgxS2dTMW5RbnY2ZXdlN2Q2MlZobDBFWUtxQ3Q5N1RtT1VWRnJSTUxyUGY0QTFBRzJ5eXdEQUFBPSJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["visit_date"],"name":[1],"type":["date"],"align":["right"]},{"label":["site_id"],"name":[2],"type":["int"],"align":["right"]},{"label":["visit_status"],"name":[3],"type":["chr"],"align":["left"]},{"label":["survey_type"],"name":[4],"type":["chr"],"align":["left"]},{"label":["pit_tag_ref"],"name":[5],"type":["chr"],"align":["left"]},{"label":["tag_new"],"name":[6],"type":["lgl"],"align":["right"]},{"label":["species"],"name":[7],"type":["chr"],"align":["left"]},{"label":["capture_life_stage"],"name":[8],"type":["chr"],"align":["left"]},{"label":["capture_animal_state"],"name":[9],"type":["chr"],"align":["left"]},{"label":["length"],"name":[10],"type":["int"],"align":["right"]},{"label":["comment_visit"],"name":[11],"type":["chr"],"align":["left"]},{"label":["comment_survey"],"name":[12],"type":["chr"],"align":["left"]},{"label":["comment_capture"],"name":[13],"type":["chr"],"align":["left"]}],"data":[],"options":{"columns":{"min":{},"max":[10],"total":[13]},"rows":{"min":[10],"max":[10],"total":[0]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
