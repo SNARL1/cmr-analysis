@@ -1,9 +1,7 @@
 # Data from: cmr-analysis
 
-*Roland A. Knapp & Thomas C. Smith*
-
 This repository contains datasets collected during capture-mark-recapture (CMR) surveys of mountain yellow-legged frog populations. 
-Survey methods are describe in [Joseph and Knapp (2018)](https://doi.org/10.1002/ecs2.2499). 
+Survey methods are described in [Joseph and Knapp (2018)](https://doi.org/10.1002/ecs2.2499). 
 All of the data are tabular, in comma separated value (CSV) format. 
 Missing values in all files are coded as NA. 
 The following file descriptions are specific to files in the `data/clean` directory; "xxxxx" in the file name is a placeholder for the five-digit site id. 
@@ -19,9 +17,9 @@ Fields:
 
 - `site_id`: 5-digit site identification code.
 - `survey_date`: Date on which survey was conducted (YYYY-MM-DD).
-- `survey_type`: `cmr` or `translocation`. `translocation` indicates the date on which a cohort of frogs was translocated/reintroduced. 
+- `survey_type`: `cmr` or `translocation`. The only action performed during a `translocation` survey is frog release. 
 - `primary_period`: Visit to site during which CMR survey was conducted, numbered sequentially from 1.
-- `secondary_period`: Survey day within each primary period, typically with 1-3 survey days per primary period. 
+- `secondary_period`: Survey day within each primary period. There are typically 1-3 survey days per primary period. 
 
 ### xxxxx_capture.csv
 
@@ -31,7 +29,7 @@ Fields:
 
 - `site_id`: 5-digit site identification code.
 - `survey_date`: Date on which survey was conducted (YYYY-MM-DD).
-- `pit_tag_id`: Id from Passive Integrated Transponder (PIT) tag implanted in frog. 
+- `pit_tag_id`: Unique numeric id from Passive Integrated Transponder (PIT) tag implanted in frog. 
 
 ### xxxxx_translocation.csv
 
@@ -40,6 +38,6 @@ This CSV contains data on frogs translocated or reintroduced to a site.
 Fields:
 
 - `site_id`: 5-digit site identification code.
-- `type`: `translocation` or `reintroduction`. 
+- `type`: `translocation` when frog is transferred between two sites, `reintroduction` when frog is reared in captivity prior to release. 
 - `release_date`: Date on which frog was released at the recipient site (YYYY-MM-DD).
-- `pit_tag_id`: Id from Passive Integrated Transponder (PIT) tag implanted in frog. 
+- `pit_tag_id`: Unique numeric id from Passive Integrated Transponder (PIT) tag implanted in frog. 
