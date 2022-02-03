@@ -16,7 +16,7 @@ This repository contains data from capture-mark-recapture surveys conducted on p
 This repository contains the following directories and files:
 * `code/` directory: Contains `Rmd` files that describe the creation of all datasets for each site (`xxxxx_createdata_mrmr.Rmd`), and analysis of those data using the [mrmr](https://github.com/SNARL1/mrmr) package (`xxxx_analysis_mrmr.Rmd`). 
 * `data/` directory: Contains raw data, and cleaned data that are error-checked and formatted for use in mrmr. 
-* `out/` directory: Contains model fit `Rds` files, figures displaying frog survival, adult frog abundance, and frog recruitment, tables displaying the survival of translocated frogs, and html-rendered "notebooks" of all `Rmd` files and their associated outputs. The html version of notebooks are particularly useful for reviewing the current status of each population without having to run the code in the relevant `xxxxx_analysis_mrmr.Rmd` files. 
+* `out/` directory: Contains model fit `Rds` files, figures displaying frog survival, adult frog abundance, and frog recruitment, tables displaying the survival of translocated frogs, and html-rendered "notebooks" of all `Rmd` files and their associated outputs. The html version of notebooks are particularly useful for reviewing the current status of each population without having to run the code in the relevant `xxxxx_analysis_mrmr.Rmd` files (see additional details in "Viewing Notebooks" section below).
 
 All sites are referenced only by 5-digit unique identifiers. No site names or x-y coordinates are provided to protect these sensitive populations to the maximum extent possible. 
 
@@ -27,6 +27,19 @@ Code: [MIT](https://choosealicense.com/licenses/mit/) | year: 2022, copyright ho
 Data: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 See [LICENSE](https://github.com/SNARL1/cmr-analysis/blob/main/LICENSE.md) for details. 
+
+### Viewing notebooks
+
+To view an HTML-rendered notebook directly from this repository (and not instead see the HTML source code when you open the file), click on the notebook you want 
+view and add this prefix to the URL displayed in the address bar: `https://htmlpreview.github.io/?`. For example, for the notebook file 
+`74976_analysis_mrmr.nb.html`, add `https://htmlpreview.github.io/?` to the notebook's URL
+
+`https://github.com/SNARL1/cmr-analysis/blob/main/doc/notebook/notebook_results.nb.html`
+
+to get 
+
+`https://htmlpreview.github.io/?https://github.com/SNARL1/cmr-analysis/blob/main/doc/notebook/notebook_results.nb.html`. 
+
 
 ### Contact
 
