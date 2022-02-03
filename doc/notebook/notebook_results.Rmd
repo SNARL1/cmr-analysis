@@ -24,8 +24,8 @@ Populations are categorized as "Donor populations", "Translocated populations", 
 ### 74976
 
 #### Survival
-* Unusually high 1-year survival of the 2018 cohort of translocated frogs (>0.9). 
-* Survival of 2020 cohort of translocated frogs was lower, but still unusually high (>0.8).
+* Unusually high 1-year survival of the 2018 cohort of translocated frogs (0.94). 
+* Survival of 2020 cohort of translocated frogs was lower, but still high (0.67).
 
 #### Reproduction
 * Successful reproduction (as evidenced by first-year tadpoles) observed in 2019, 2020, and 2021. 
@@ -43,7 +43,7 @@ Likely all from 2019 cohort, but large size range (41-50 mm) suggests that these
 
 
 #### Population size
-* 2021 estimated population size is approximately xx adults. 
+* 2021 estimated population size is approximately 28 adults. 
 * As of mid-August 2021, frog population extends from Lower Pool outlet to 72973. 
 * 72973 (uppermost pond) was colonized by adults and metamorphs in 2020. 
 * All reproduction is occurring in 74976. 
