@@ -11,12 +11,13 @@ Thomas C. Smith (tcsmith(at)ucsb.edu [![ORCiD](https://img.shields.io/badge/ORCi
 
 ### Overview of contents
 
-This repository contains data from capture-mark-recapture surveys conducted on populations of the endangered [mountain yellow-legged frog](https://www.fws.gov/sacramento/es_species/Accounts/Amphibians-Reptiles/sn_yellow_legged_frog/documents/Mountain-Yellow-Legged-Frog-Conservation-Strategy-Signed-508.pdf), and the code to analyze the survey data. The results from these analyses are used to describe the status of frog populations of particular interest, including populations that were established using translocations or reintroductions of adult frogs (e.g., [Joseph and Knapp 2018](https://doi.org/10.1002/ecs2.2499)), and donor populations from which frogs are collected for translocations. Results from many of these analyses are included in a manuscript (in preparation) that describes the establishment dynamics of frog populations following translocations. 
+This repository contains data from capture-mark-recapture (CMR) surveys conducted on populations of the endangered [mountain yellow-legged frog](https://www.fws.gov/sacramento/es_species/Accounts/Amphibians-Reptiles/sn_yellow_legged_frog/documents/Mountain-Yellow-Legged-Frog-Conservation-Strategy-Signed-508.pdf), and the code to analyze the survey data. The results from these analyses are used to describe the status of frog populations of particular interest, including populations that were established using translocations or reintroductions of adult frogs (e.g., [Joseph and Knapp 2018](https://doi.org/10.1002/ecs2.2499)), and donor populations from which frogs are collected for translocations. Results from many of these analyses are included in a manuscript (in preparation) that describes the establishment dynamics of frog populations following translocations. 
 
 This repository contains the following directories and files:
 * `code/` directory: Contains `Rmd` files that describe the creation of all datasets for each site (`xxxxx_createdata_mrmr.Rmd`), and analysis of those data using the [mrmr](https://github.com/SNARL1/mrmr) package (`xxxx_analysis_mrmr.Rmd`). 
 * `data/` directory: Contains raw data, and cleaned data that are error-checked and formatted for use in mrmr. 
-* `out/` directory: Contains model fit `Rds` files, figures displaying frog survival, adult frog abundance, and frog recruitment, tables displaying the survival of translocated frogs, and html-rendered "notebooks" of all `Rmd` files and their associated outputs. The html version of notebooks are particularly useful for reviewing the current status of each population without having to run the code in the relevant `xxxxx_analysis_mrmr.Rmd` files (see additional details in "Viewing Notebooks" section below).
+* `doc/` directory: Contains a notebook file that describes the status of each frog population at which CMR surveys are conducted
+* `out/` directory: Contains model fit `Rds` files, figures displaying frog survival, adult frog abundance, and frog recruitment, tables displaying the survival of translocated frogs, and html-rendered "notebooks" of all `Rmd` files and their associated outputs. The html version of notebooks are particularly useful for reviewing the analysis outputs (e.g., figures and tables) for each population without having to run the code in the associated `xxxxx_analysis_mrmr.Rmd` files. The "Viewing Notebooks" section below describes options for viewing the notebooks without downloading the repository contents.
 
 All sites are referenced only by 5-digit unique identifiers. No site names or x-y coordinates are provided to protect these sensitive populations to the maximum extent possible. 
 
@@ -30,6 +31,9 @@ See [LICENSE](https://github.com/SNARL1/cmr-analysis/blob/main/LICENSE.md) for d
 
 ### Viewing notebooks
 
+HTML-rendered notebooks are available in the `doc/` and `out/` directories. 
+The notebook in the `doc/` directory provides general summaries of the status of each frog population. 
+Notebooks in the `out/` directory contain details of the data creation steps and analysis results for each population.  
 To view an HTML-rendered notebook directly from this repository (and not instead see the HTML source code when you open the file), click on the notebook you want 
 view and add this prefix to the URL displayed in the address bar: `https://htmlpreview.github.io/?`. For example, for the notebook file 
 `notebook_results.nb.html`, add `https://htmlpreview.github.io/?` to the notebook's URL
