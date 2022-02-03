@@ -1,0 +1,58 @@
+---
+title: "Notebook: Results from analysis of CMR datasets"
+author: "Roland Knapp"
+output: 
+  html_notebook:
+    toc: true
+    theme: united
+editor_options: 
+  chunk_output_type: inline
+---
+
+## Overview
+This notebook contains a summary of results obtained from the analysis of capture-mark-recapture (CMR) data from mountain yellow-legged frog populations in California's Sierra Nevada.
+These data are collected by the [Mountain Lakes Research Group](https://mountainlakesresearch.com), usually on an annual basis. 
+The intent of this notebook is to provide a single file where researchers and managers can obtain information about the current status of these populations, many of which are critically important for the recovery of this species. 
+Data from visual encounter surveys are also included in the summary to augment the results from CMR surveys. 
+This information is updated annually as data from the most recent summer field season is analyzed. 
+Populations are categorized as "Donor populations", "Translocated populations", and "Reintroduced populations", and within these categories populations are identified by their five-digit site id. 
+
+## Donor populations
+
+## Translocated populations
+
+### 74976
+
+#### Survival
+* Unusually high 1-year survival of the 2018 cohort of translocated frogs (>0.9). 
+* Survival of 2020 cohort of translocated frogs was lower, but still unusually high (>0.8).
+
+#### Reproduction
+* Successful reproduction (as evidenced by first-year tadpoles) observed in 2019, 2020, and 2021. 
+* 2019 cohort contained at least 250 individuals, based on count conducted on 09-Sep-2019. 
+Cohort appeared to experience relatively low overwinter survival (perhaps due to the heavy 2019 snow year --> short 2019 summer --> small tadpole size going into 2020 winter), with approximately 25 second-year tadpoles counted on 20-Aug-2020. 
+5 metamorphs seen during the August 2020 CMR. 
+* 2020 cohort contained at least 320 individuals, based on count conducted on 20-Aug-2020. 
+Tadpole count on 25-Jun-2021 indicated 386 second-year animals, suggesting high overwinter survival of first-year tadpoles compared to that shown by 2019 cohort (perhaps due to light 2020 snow year --> long 2020 summer --> large tadpole size going into 2021 winter). 
+* 2021 cohort contained at least 305 individuals, based on count conducted on 18-Aug-2021. 
+* Many subadults counted during mid-August 2021 survey (203), compared to very few in late-summer 2020. 
+
+#### Recruitment
+* First new recruits into the adult population (5) captured during mid-August 2021 CMR survey. 
+Likely all from 2019 cohort, but large size range (41-50 mm) suggests that these adults were from animals that metamorphosed in both late-summer 2020 and early-summer 2021. 
+
+
+#### Population size
+* 2021 estimated population size is approximately xx adults. 
+* As of mid-August 2021, frog population extends from Lower Pool outlet to 72973. 
+* 72973 (uppermost pond) was colonized by adults and metamorphs in 2020. 
+* All reproduction is occurring in 74976. 
+* Population seems likely to become firmly established in next few years. 
+
+
+## Reintroduced populations
+
+
+
+
+
