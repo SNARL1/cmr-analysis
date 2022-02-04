@@ -41,6 +41,7 @@ data_74976 <- clean_data(captures = captures, surveys = surveys, translocations 
 ```
 
 ## Fit model
+Add "adapt_delta = 0.99" or similar if divergent transitions occur. 
 ```{r fit_model}
 model_74976 <- fit_model(
                     data = data_74976, 
@@ -48,7 +49,7 @@ model_74976 <- fit_model(
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
                     threads_per_chain = 2, 
-                    adapt_delta = 0.99) # comment out this line unless needed to resolve divergent transitions
+                    adapt_delta = 0.99)
 ```
 * Running model with default adapt_delta (0.8) resulted in one divergent transition (1/4000).
 * Increase of adapt_delta to 0.99 resulted in zero divergent transitions. 
