@@ -1,3 +1,4 @@
+# WARNING: Changing or removing the "data/raw/" line could expose site locations
 data/raw/
 .Rproj.user
 *.Rproj
