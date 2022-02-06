@@ -26,7 +26,7 @@ In the following summary, populations are categorized as "Donor populations", "T
 
 #### Survival
 * Very low 1-year survival of the 2006 cohort of translocated frogs (0.01), and no adults seen in 2007.
-* Number of *T. elegans* appeared to increased markedly following translocation, may have been at least partially responsible for low surival. 
+* Number of *T. elegans* appeared to increased markedly following translocation, may have been at least partially responsible for low survival. 
 
 #### Reproduction
 * No evidence of reproduction was ever seen. 
@@ -55,6 +55,21 @@ Expect a substantially larger number of metamorphs in 2022 from 2021 cohort.
 #### Population size
 * 2021 estimated population size is approximately 25 adults. 
 * All adults seen in northern 1/3 or 1/2 of lake. 
+
+### 70628
+
+#### Survival
+* 1-year survival of the 2020 cohort is 0.65. 
+Seems quite high for frogs from the 72996 donor population. 
+
+#### Reproduction
+* No tadpoles seen during the 2021-08-10 VES, but hopefully will be observed during surveys in 2022. 
+
+#### Recruitment
+* No recruitment expected until at least 2024. 
+
+#### Population size
+* 2021 estimated population size is approximately 17 adults
 
 ### 74976
 
