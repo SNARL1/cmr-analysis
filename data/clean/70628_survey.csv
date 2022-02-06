@@ -1,0 +1,8 @@
+site_id,survey_date,survey_type,primary_period,secondary_period
+70628,2020-08-05,translocation,1,0
+70628,2021-07-03,cmr,2,1
+70628,2021-07-04,cmr,2,2
+70628,2021-07-05,cmr,2,3
+70628,2021-08-10,cmr,3,1
+70628,2021-08-11,cmr,3,2
+70628,2021-08-12,cmr,3,3
