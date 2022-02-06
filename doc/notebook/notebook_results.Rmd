@@ -26,7 +26,7 @@ In the following summary, populations are categorized as "Donor populations", "T
 
 #### Survival
 * Very low 1-year survival of the 2006 cohort of translocated frogs (0.01), and no adults seen in 2007.
-* Number of *T. elegans* appeared to increased markedly following translocation, may have been at least partially responsible for low survival. 
+* Number of *T. elegans* appeared to increase markedly following translocation, may have been at least partially responsible for low survival. 
 
 #### Reproduction
 * No evidence of reproduction was ever seen. 
