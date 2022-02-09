@@ -88,7 +88,7 @@ assert_that(!any(str_detect(translocation_70414$pit_tag_ref, "\\.1$")))
 translocation_70414 %>% drop_na(length) %>% filter(length < 40)
 
 # Check for frogs that died during translocation
-translocation_70134 %>% filter(grepl("dead", comment_relocate_frog) | grepl("died", comment_relocate_frog))
+translocation_70414 %>% filter(grepl("dead", comment_relocate_frog) | grepl("died", comment_relocate_frog))
 
 # Check for duplicate pit tags on each date
 translocation_70414 %>% count(release_date, pit_tag_ref) %>% filter(n > 1)
@@ -136,7 +136,7 @@ con = dbConnect(dbDriver("PostgreSQL"),
 ```
 
 ### Retrieve survey data from database
-If surveys at which no frogs were captured are classified as "ves", include in "where" statement
+If surveys at which no frogs were captured are classified as "ves", include in "where" statement (e.g., where site_id = 70619 and (survey_type = 'cmr' or survey_type = 'visual'))
 ```{sql retrieve_survey_data, connection=con, output.var = "survey_70414"}
 select 
   site_id, 
@@ -152,7 +152,7 @@ select
   survey.comment as comment_survey
 from visit
 inner join survey on visit.id = visit_id
-where (site_id = 70134 or site_id = 70688) and
+where (site_id = 70414 or site_id = 70688) and
       survey_type = 'cmr
 ```
 ```{r, message=FALSE}
@@ -174,12 +174,12 @@ Because cmr and visual surveys exist for same date, keep cmr survey only. Change
 Restrict date range to include only relevant surveys.
 ```{r check_survey_history}
 # Check if primary site was surveyed during each visit
-survey_70134 %>% 
+survey_70414 %>% 
   add_count(visit_date) %>% 
-  filter(n == 1 & site_id != "70134")
+  filter(n == 1 & site_id != "70414")
 ```
 ```{r include_relevant_surveys}
-# When only cmr surveys are to be included
+# When only cmr surveys exist in survey history
 survey_70414 <- survey_70414 %>% 
   filter(site_id == 70414) %>%
   rename(survey_date = visit_date)
@@ -289,8 +289,8 @@ select
 from visit
 inner join survey on visit.id = visit_id
 inner join capture_survey on survey.id = survey_id
-where (site_id = 70134 or site_id = 70688) and
-      survey_type = 'cmr
+where (site_id = 70414 or site_id = 70688) and
+      survey_type = 'cmr'
 ```
 ```{r, message=FALSE}
 dbDisconnect(con)
