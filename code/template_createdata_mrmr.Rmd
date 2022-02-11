@@ -153,7 +153,7 @@ select
 from visit
 inner join survey on visit.id = visit_id
 where (site_id = 70414 or site_id = 70688) and
-      survey_type = 'cmr
+      survey_type = 'cmr'
 ```
 ```{r, message=FALSE}
 dbDisconnect(con)
@@ -177,6 +177,13 @@ Restrict date range to include only relevant surveys.
 survey_70414 %>% 
   add_count(visit_date) %>% 
   filter(n == 1 & site_id != "70414")
+```
+```{r} 
+# If cmr and ves surveys exist, check for visits that included only survey_type = "visual" to determine whether survey date should be included. 
+survey_70414 %>% 
+  add_count(visit_date) %>% 
+  filter(n == 1 & survey_type == "visual") %>% 
+  arrange(visit_date)
 ```
 ```{r include_relevant_surveys}
 # When only cmr surveys exist in survey history
@@ -305,7 +312,7 @@ capture_70414 %>% write_csv(here::here("data", "raw", "70414_capture_raw.csv"))
 capture_70414 <- read_csv(here::here("data", "raw", "70414_capture_raw.csv")) %>% 
   mutate(pit_tag_ref = as.character(pit_tag_ref))
 ```
-Review records for potential problematic captures, for example, based on comment fields and fields describing frog characteristics.
+Review records for potential problematic captures, for example, based on comment fields and fields describing frog characteristics (including tag_new).
 
 ### Retain only relevant columns
 ```{r capture_relevant_columns}
