@@ -31,6 +31,9 @@ In the following summary, populations are categorized as "Donor populations", "T
 #### Reproduction
 * No evidence of reproduction was ever seen. 
 
+![](../../out/plots/70134_mrmr_plots.png){width=75%}
+
+
 ### 70414
 
 #### Survival
@@ -40,6 +43,7 @@ In the following summary, populations are categorized as "Donor populations", "T
 #### Reproduction
 * No evidence of reproduction was ever seen. 
 
+![](../../out/plots/70414_mrmr_plots.png)
 
 ### 70556
 
@@ -66,6 +70,8 @@ Expect a substantially larger number of metamorphs in 2022 from 2021 cohort.
 * 2021 estimated population size is approximately 25 adults. 
 * All adults seen in northern 1/3 or 1/2 of lake. 
 
+![](../../out/plots/70556_mrmr_plots.png)
+
 
 ### 70619
 
@@ -82,6 +88,8 @@ Expect a substantially larger number of metamorphs in 2022 from 2021 cohort.
 #### Population size
 * Estimated population size declined relatively rapidly during summer 2018, and since 2012 has been near zero. 
 
+![](../../out/plots/70619_mrmr_plots.png)
+
 
 ### 70628
 
@@ -97,6 +105,30 @@ Seems quite high for frogs from the 72996 donor population.
 
 #### Population size
 * 2021 estimated population size is approximately 17 adults
+
+![](../../out/plots/70628_mrmr_plots.png)
+
+
+### 70641
+
+#### Survival
+* The three translocated cohorts (2015, 2017, 2020) have all shown low 1-year survival (0.27, 0.16, 0.07, respectively). 
+* Gartersnakes present at site, but within months of translocation frogs grow to large sizes that provide a refuge from predation. 
+* Frogs at this site grow quickly and attain large sizes (up to 82 mm SVL - in 2021)
+
+#### Reproduction
+* Reproduction in this population is difficult to assess because non-adult life stages are rarely seen due to thick littoral zone vegetation.
+* No tadpoles have been observed during VES, and the only subadult observed was in 2019.
+* However, new adult recruits have been captured, so some reproduction is obviously occurring. 
+
+#### Recruitment
+* A total of 4 new (untagged) frogs have been captured, including 1 in 2017, 2 in 2019, and 1 in 2020. 
+
+#### Population size
+* The 2021 estimated population size is near 0. 
+
+![](../../out/plots/70641_mrmr_plots.png)
+
 
 ### 74976
 
@@ -124,6 +156,8 @@ Likely all from 2019 cohort, but large size range (41-50 mm) suggests that these
 * 72973 (uppermost pond) was colonized by adults and metamorphs in 2020. 
 * All reproduction is occurring in 74976. 
 * Population seems likely to become firmly established in next few years. 
+
+![](../../out/plots/74976_mrmr_plots.png)
 
 
 ## Reintroduced populations
