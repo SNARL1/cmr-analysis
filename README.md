@@ -18,7 +18,7 @@ This repository contains the following directories and files:
 * `data/` directory: Contains cleaned data that are error-checked and formatted for use in `mrmr`. Raw data are not provided because information in some fields could reveal the locations of these sensitive frog populations.  
 * `doc/` directory: Contains a notebook file that describes the status of each frog population at which CMR surveys are conducted
 * `out/` directory: Contains the following directories and files:
-  * `figures/` directory: Plots displaying frog survival, adult frog abundance, and frog recruitment.
+  * `plots/` directory: Plots displaying frog survival, adult frog abundance, and frog recruitment. 
   * `model/` directory: Model fit `Rds` files.
   * `notebooks_code/`: Html-rendered "notebooks" of all `Rmd` files and their associated outputs. The html version of notebooks can be useful for reviewing the analysis outputs (e.g., plots and tables) for each population without having to run the code in the associated `xxxxx_analysis_mrmr.Rmd` files. The "Viewing Notebooks" section below describes options for viewing the notebooks without downloading the repository contents. 
   * `tables/` directory: Tables displaying the survival of translocated frogs, by cohort and by individual.
