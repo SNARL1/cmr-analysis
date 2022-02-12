@@ -136,7 +136,7 @@ con = dbConnect(dbDriver("PostgreSQL"),
 ```
 
 ### Retrieve survey data from database
-If surveys at which no frogs were captured are classified as "ves", include in "where" statement (e.g., where site_id = 70619 and (survey_type = 'cmr' or survey_type = 'visual'))
+If surveys at which no frogs were captured are classified as "ves", include in "where" statement (e.g., where site_id = 70619 and survey_type in ('cmr', 'visual'))
 ```{sql retrieve_survey_data, connection=con, output.var = "survey_70414"}
 select 
   site_id, 
@@ -188,7 +188,7 @@ survey_70414 %>%
 ```{r include_relevant_surveys}
 # When only cmr surveys exist in survey history
 survey_70414 <- survey_70414 %>% 
-  filter(site_id == 70414) %>%
+  filter(site_id == 70414 & visit_date > "2014-06-28") %>%
   rename(survey_date = visit_date)
 
 # When both ves and cmr surveys are to be included

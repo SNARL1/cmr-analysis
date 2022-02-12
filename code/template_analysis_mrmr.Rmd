@@ -41,6 +41,7 @@ data_70641 <- clean_data(captures = captures, surveys = surveys, translocations 
 ```
 
 ## Fit model
+Code assumes that there are 8 physical cores available. Update parallel_chains and threads_per_chain as necessary based on actual number of cores. 
 Add "adapt_delta = 0.99" or similar if divergent transitions occur. 
 ```{r fit_model}
 model_70641 <- fit_model(
