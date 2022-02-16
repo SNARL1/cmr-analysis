@@ -36,7 +36,7 @@ In the following summary, populations are categorized as "Donor populations", "T
 ### 70370
 
 #### Survival
-* Very low 1-year survival of both the 2016 and 2018 trannslocated cohorts (0.04 and 0.11, respectively). 
+* Very low 1-year survival of both the 2016 and 2018 trannslocated cohorts (0.04 and 0.17, respectively). 
 * Habitat looks very good for *R. sierrae* for both summer and winter, so it remains unclear what the factor limiting frog survival at this site is. 
 It is unlikely related to winter oxygen levels in the water because trout thrived here for decades. 
 
