@@ -347,9 +347,10 @@ survey_70370 %>%
 
 ### Clean capture data
 ```{r clean_capture_data}
-# Remove dead frogs
+# Remove dead frogs and 4 frogs translocated from 74335
 capture_70370 <- capture_70370 %>% 
-  filter(capture_animal_state != "dead")
+  filter(capture_animal_state != "dead" &
+         !pit_tag_ref %in% c('900067000114101', '900067000114116', '900067000114146', '900067000114175'))
 ```
 
 ### Create final capture dataset formatted for mrmr
