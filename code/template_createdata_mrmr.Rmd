@@ -152,7 +152,7 @@ select
   survey.comment as comment_survey
 from visit
 inner join survey on visit.id = visit_id
-where (site_id = 70414 or site_id = 70688) and
+where site_id = 70370 and
       survey_type = 'cmr'
 ```
 ```{r, message=FALSE}
@@ -296,7 +296,7 @@ select
 from visit
 inner join survey on visit.id = visit_id
 inner join capture_survey on survey.id = survey_id
-where (site_id = 70414 or site_id = 70688) and
+where site_id in (70414, 70688) and
       survey_type = 'cmr'
 ```
 ```{r, message=FALSE}
