@@ -33,6 +33,21 @@ In the following summary, populations are categorized as "Donor populations", "T
 
 ![](../../out/plots/70134_mrmr_plots.png){width=75%}
 
+### 70370
+
+#### Survival
+* Very low 1-year survival of both the 2016 and 2018 trannslocated cohorts (0.04 and 0.11, respectively). 
+* Habitat looks very good for *R. sierrae* for both summer and winter, so it remains unclear what the factor limiting frog survival at this site is. 
+It is unlikely related to winter oxygen levels in the water because trout thrived here for decades. 
+
+#### Reproduction
+* No evidence of reproduction was ever observed. 
+
+#### Population size
+* Population size returned to near-zero within one year of each translocation. 
+* The absence of any frogs during the 2020 survey suggests that the population is extirpated. 
+
+![](../../out/plots/70370_mrmr_plots.png){width=75%}
 
 ### 70414
 
