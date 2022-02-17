@@ -1,0 +1,125 @@
+---
+title: "70550 - Analyze capture-mark-recapture data using *mrmr*"
+author: "Roland Knapp"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+This notebook analyzes capture-mark-recapture data using the *mrmr* package. The code creates the required survey, capture, and translocation data frames from saved CSV files (created by xxxxx_createdata_mrmr.Rmd), checks the datasets, fits the model, evaluates potential non-convergence of the MCMC algorithm, and visualizes model results. 
+
+## Install latest versions of cmdstanr, cmdstan, and mrmr packages
+Run only if updated versions were released since previous install
+```{r install_stan_packages, message=FALSE, warning=FALSE}
+# install cmdstanr and cmdstan
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+cmdstanr::install_cmdstan()
+
+# install mrmr
+remotes::install_github("SNARL1/mrmr")
+```
+
+## Load required packages
+```{r load_packages}
+library(dplyr)
+library(readr)
+library(tibble)
+library(cmdstanr)
+library(mrmr)
+library(patchwork)
+```
+
+## Create required data frames
+```{r create_data_objects}
+captures <- read_csv(here::here("data", "clean", "70550_capture.csv"))
+surveys <- read_csv(here::here("data", "clean", "70550_survey.csv"))
+translocations <- read_csv(here::here("data", "clean", "70550_translocation.csv"))
+```
+
+## Check datasets
+```{r check_data}
+data_70550 <- clean_data(captures = captures, surveys = surveys, translocations = translocations)
+```
+
+## Fit model
+Code assumes that there are 8 physical cores available. Update parallel_chains and threads_per_chain as necessary based on actual number of cores. 
+Add "adapt_delta = 0.99" or similar if divergent transitions occur. 
+```{r fit_model}
+model_70550 <- fit_model(
+                    data = data_70550, 
+                    chains = 4, 
+                    parallel_chains = 4, 
+                    cpp_options = list(stan_threads = TRUE),
+                    threads_per_chain = 2) 
+```
+* Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).
+
+### Save/retrieve model object
+This step prevents having to rerun the model in the event of a crash during model visualizations in subsequent code blocks. Model files can be large, so this saves the file in a compressed format.
+```{r write_model}
+write_rds(model_70550, here::here("out", "model", "70550_model.rds"), "xz", compression = 9L)
+```
+```{r read_model}
+model_70550 <- read_rds(here::here("out", "model", "70550_model.rds"))
+```
+
+### Diagnose potential non-convergence of the MCMC algorithm
+Inspect traceplots and parameter summary table. In table, are any R~hat~ values $\ge 1.01$?
+```{r model_diagnostics}
+pars_to_plot <- c('alpha_lambda', 
+                  'sigma_lambda', 
+                  'beta_phi', 
+                  'sigma_phi', 
+                  'beta_detect')
+bayesplot::mcmc_trace(model_70550$m_fit$draws(pars_to_plot))
+
+model_70550$m_fit$summary(pars_to_plot)
+```
+
+## Visualize model results
+### Default plots
+Note: Custom plots (produced in next code chunk: "plots_custom") are often easier to interpret than the default plots produced by this code chunk.
+```{r model_visualize}
+plot_model(model_70550, what = "abundance")
+plot_model(model_70550, what = "recruitment")
+plot_model(model_70550, what = "survival")
+```
+
+### Customize plots
+```{r plots_custom, fig.height=8, fig.width=7}
+library(ggplot2)
+p1 <- plot_model(model_70550, what = "survival") 
+p1 <- p1 + ggtitle("A. Survival of translocated frogs") +
+    expand_limits(y = 0) +
+    theme(legend.position = "none")
+  
+p2 <- plot_model(model_70550, what = "abundance") 
+p2 <- p2 + ggtitle("B. Population size") +
+    ylab("Number of adults") + 
+    expand_limits(y = 0)
+  
+p3 <- plot_model(model_70550, what = "recruitment")
+p3 <- p3 + ggtitle("C. Recruitment") +
+    ylab("Number of adults")
+  
+p1 / p2 / p3
+```
+
+### Save custom plots
+```{r save_plot}
+ggsave(here::here("out", "plots", "70550_mrmr_plots.png"), width = 6.5, height = 7.2)
+```
+
+## Create survival tables
+Only the cohort-level survival table is displayed (individual-level survival can be a large table).
+```{r survival_tables}
+survival_cohort <- survival_table(model_70550, by_cohort = TRUE)
+survival_cohort
+
+survival_ind <- survival_table(model_70550, by_individual = TRUE) 
+```
+
+### Save survival tables
+```{r save_survival_tables}
+survival_cohort %>% write_csv(here::here("out", "tables", "70550_survival_cohort.csv"))
+survival_ind %>% write_csv(here::here("out", "tables", "70550_survival_ind.csv"))
+```
