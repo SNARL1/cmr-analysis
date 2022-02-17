@@ -152,7 +152,7 @@ select
   survey.comment as comment_survey
 from visit
 inner join survey on visit.id = visit_id
-where site_id = 70370 and
+where site_id = 70414 and
       survey_type = 'cmr'
 ```
 ```{r, message=FALSE}
@@ -222,7 +222,11 @@ survey_70414_mrmr %>% filter(visit_status != "suitable")
 
 ### Clean survey data
 ```{r clean_survey_data}
-# No problems to clean
+# Drop duplicate surveys
+survey_70414_mrmr <- survey_70414_mrmr %>% 
+  distinct(survey_date, .keep_all = TRUE)
+
+
 ```
 
 ### Create primary and secondary period columns in mrmr format
@@ -354,18 +358,18 @@ assert_that(!any(capture_70414$visit_status != "suitable"))
 capture_70414 %>% count(visit_date, pit_tag_ref) %>% filter(n > 1)
 
 # Check for captures that lack associated surveys
-survey_70414 %>% 
-  select(survey_date) %>% 
+survey_70550_mrmr %>% 
+  select(survey_date, primary_period) %>% 
   rename(visit_date = survey_date) %>% 
-  right_join(capture_70414, by = c("visit_date")) %>% 
-  filter(is.na(visit_date))
+  right_join(capture_70550, by = c("visit_date")) %>% 
+  filter(is.na(primary_period))
 
 # Check for surveys that lack associated captures
-survey_70414 %>% 
-  select(survey_date) %>% 
+survey_70550_mrmr %>% 
+  select(survey_date, primary_period) %>% 
   rename(visit_date = survey_date) %>% 
-  left_join(capture_70414, by = c("visit_date")) %>% 
-  filter(is.na(site_id))
+  left_join(capture_70550, by = c("visit_date")) %>% 
+  filter(is.na(species))
 ```
 
 ### Clean capture data
