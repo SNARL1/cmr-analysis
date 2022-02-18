@@ -59,7 +59,7 @@ This step prevents having to rerun the model in the event of a crash during mode
 write_rds(model_70550, here::here("out", "model", "70550_model.rds"), "xz", compression = 9L)
 ```
 ```{r read_model}
-model_70550 <- read_rds(here::here("out", "model", "70550_model.rds"))
+model_70550 <- read_rds(here::here("out", "70550_model.rds"))
 ```
 
 ### Diagnose potential non-convergence of the MCMC algorithm
@@ -106,7 +106,7 @@ p1 / p2 / p3
 
 ### Save custom plots
 ```{r save_plot}
-ggsave(here::here("out", "plots", "70550_mrmr_plots.png"), width = 6.5, height = 7.2)
+ggsave(here::here("out", "70550_mrmr_plots.png"), width = 6.5, height = 7.2)
 ```
 
 ## Create survival tables
@@ -120,6 +120,6 @@ survival_ind <- survival_table(model_70550, by_individual = TRUE)
 
 ### Save survival tables
 ```{r save_survival_tables}
-survival_cohort %>% write_csv(here::here("out", "tables", "70550_survival_cohort.csv"))
-survival_ind %>% write_csv(here::here("out", "tables", "70550_survival_ind.csv"))
+survival_cohort %>% write_csv(here::here("out", "70550_survival_cohort.csv"))
+survival_ind %>% write_csv(here::here("out", "70550_survival_ind.csv"))
 ```
