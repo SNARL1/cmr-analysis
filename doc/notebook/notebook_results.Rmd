@@ -87,6 +87,27 @@ Although smaller than hoped for, this may be a typical population size at this e
 ![](../../out/plots/70449_mrmr_plots.png){width=75%}
 
 
+### 70505
+
+#### Survival
+* Low 1-year survival of the 2008, 2013, 2015, and 2017 cohorts of translocated frogs (0.19, 0.16, 0.10, 0.10).
+
+#### Reproduction
+* Tadpoles and/or subadults seen in every year starting in 2010. 
+* Counts of these life stages are generally low (< 25), but the 200 tadpoles counted in 2018 were an obvious exception. 
+
+#### Recruitment
+* First new recruits into the adult population were observed in 2012. 
+* Some recruitment of new adults occurred in most years, including 12-17 recruits per year in 2013, 2014, and 2015. 
+
+#### Population size
+* Estimated population size in the last survey year (2018) was approximately 6 adults. 
+* This small population size is likely due to survival of adults being low enough to preclude population growth, even with 4 translocations and natural recruitment of adults in several years.
+* Available evidence suggests that, at best, this site will support only a small frog population, and conducting additional translocations will likely not alter that outcome. 
+
+![](../../out/plots/70505_mrmr_plots.png){width=75%}
+
+
 ### 70556
 
 #### Survival
