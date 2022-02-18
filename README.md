@@ -43,6 +43,10 @@ to get
 
 `https://htmlpreview.github.io/?https://github.com/SNARL1/cmr-analysis/blob/main/doc/notebook/notebook_results.nb.html`. 
 
+Hit "Return" or "Enter" on your keyboard and the HTML-rendered notebook will appear. 
+
+If, after clicking on the notebook file, you see a message that the notebook file is too big to view, click the "View raw" link or "Download" button, and add the address prefix as described above. 
+
 ### Licenses
 
 Code: [MIT](https://choosealicense.com/licenses/mit/) | year: 2022, copyright holder: Roland Knapp
