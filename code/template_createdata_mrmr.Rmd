@@ -99,9 +99,7 @@ translocation_70414 %>% distinct(release_date) %>% glimpse()
 
 ### Clean translocation data
 ```{r clean_translocation_data}
-# Remove frogs that died during translocation
-translocation_70414 <- translocation_70414 %>% 
-  filter(!(grepl("dead", comment_relocate_frog)))
+# No problems to clean
 ```
 
 ### Create final translocation dataset formatted for mrmr
@@ -118,7 +116,7 @@ translocation_70414_mrmr <- translocation_70414 %>%
 translocation_70414_mrmr %>% write_csv(here::here("data", "clean", "70414_translocation.csv"))
 ```
 ```{r read_cleaned_translocation_data, message=FALSE}
-translocation_70414 <- read_csv(here::here("data", "clean", "70414_translocation.csv")) %>% 
+translocation_70414_mrmr <- read_csv(here::here("data", "clean", "70414_translocation.csv")) %>% 
   mutate(pit_tag_id = as.character(pit_tag_id))
 ```
 
@@ -262,7 +260,7 @@ survey_70414_mrmr <- survey_70414_mrmr %>%
 survey_70414_mrmr %>% write_csv(here::here("data", "clean", "70414_survey.csv"))
 ```
 ```{r read_cleaned_survey_data}
-survey_70414 <- read_csv(here::here("data", "clean", "70414_survey.csv"))
+survey_70414_mrmr <- read_csv(here::here("data", "clean", "70414_survey.csv"))
 ```
 
 ## Create capture dataset
@@ -358,18 +356,24 @@ assert_that(!any(capture_70414$visit_status != "suitable"))
 capture_70414 %>% count(visit_date, pit_tag_ref) %>% filter(n > 1)
 
 # Check for captures that lack associated surveys
-survey_70550_mrmr %>% 
+survey_70414_mrmr %>% 
   select(survey_date, primary_period) %>% 
   rename(visit_date = survey_date) %>% 
-  right_join(capture_70550, by = c("visit_date")) %>% 
+  right_join(capture_70414, by = c("visit_date")) %>% 
   filter(is.na(primary_period))
 
+# Simpler alternative
+setdiff(capture_70414$visit_date, survey_70414_mrmr$survey_date) %>% as.Date(origin = "1970-01-01")
+
 # Check for surveys that lack associated captures
-survey_70550_mrmr %>% 
+survey_70414_mrmr %>% 
   select(survey_date, primary_period) %>% 
   rename(visit_date = survey_date) %>% 
-  left_join(capture_70550, by = c("visit_date")) %>% 
+  left_join(capture_70414, by = c("visit_date")) %>% 
   filter(is.na(species))
+
+# Simpler alternative
+setdiff(survey_70414_mrmr$survey_date, capture_70414$visit_date) %>% as.Date(origin = "1970-01-01")
 ```
 
 ### Clean capture data
@@ -390,7 +394,7 @@ capture_70414_mrmr <- capture_70414 %>%
 capture_70414_mrmr %>% write_csv(here::here("data", "clean", "70414_capture.csv"))
 ```
 ```{r read_cleaned_capture_data}
-capture_70414 <- read_csv(here::here("data", "clean", "70414_capture.csv"))
+capture_70414_mrmr <- read_csv(here::here("data", "clean", "70414_capture.csv"))
 ```
 
 
