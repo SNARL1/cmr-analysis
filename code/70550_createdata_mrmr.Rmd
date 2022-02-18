@@ -213,7 +213,7 @@ survey_70550_mrmr<- survey_70550_mrmr %>%
 
 ### Create primary and secondary period columns in mrmr format
 ```{r create_period_columns}
-# For combine robust design and single-visit dataset
+# For combined robust design and single-visit dataset
 survey_70550_mrmr <- survey_70550_mrmr %>% 
   select(site_id, survey_date, survey_type) %>% 
   filter(survey_date < "2013-07-29") %>% 
