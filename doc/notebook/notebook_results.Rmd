@@ -17,6 +17,9 @@ Data from visual encounter surveys are also included in the summary to augment t
 This information is updated annually as data from the most recent summer field season is analyzed. 
 
 In the following summary, populations are categorized as "Donor populations", "Translocated populations", and "Reintroduced populations", and within these categories populations are identified by their five-digit site id. 
+Unless otherwise noted, frogs in all populations are infected with the amphibian chytrid fungus, *Batrachochytrium dendrobatidis* (Bd). 
+Unlike the severe effects caused by Bd following its initial arrival in these populations, usually decades ago, many of these populations are now co-existing with Bd. 
+The reasons for this changed dynamic are under study, and appear to involve evolutionary changes in frogs that have made them less susceptible to chytridiomycosis, the disease caused by Bd. 
 
 ## Donor populations
 
@@ -106,6 +109,32 @@ Although smaller than hoped for, this may be a typical population size at this e
 * Available evidence suggests that, at best, this site will support only a small frog population, and conducting additional translocations will likely not alter that outcome. 
 
 ![](../../out/plots/70505_mrmr_plots.png){width=75%}
+
+
+### 70550 
+
+#### Survival
+* Relatively high 1-year survival of the 2006 cohort of translocated frogs (0.61). 
+* Survival of 2013 cohort of translocated frogs was substantially lower (0.29).
+
+#### Reproduction
+* Tadpoles and subadults were first observed in 2008. 
+* Both life stages were observed in all subsequent surveys (2008-2021), and in much higher numbers than in any other translocated population.
+* Since 2016, tadpole counts from visual encounter surveys have often exceeded 1500 individuals. 
+
+#### Recruitment
+* The first recruit into the adult population was observed in 2010, and except for 2011, new recruits have been tagged in every subsequent year (2010, 2012-2021). 
+* Recruitment magnitude is highly variable between years, with notably large recruitment events in 2016 and 2021, and lower but substantial recruitment in several additional years (2013, 2014, 2018, 2020). 
+* This variation may result from an interaction between subadult survival, Bd infection, and winter severity. 
+
+#### Population size
+* Following the original translocation in 2006, the estimated population was < 50 adults until 2013. During 2013-2015, the population increased to 100-150 adults.
+Since the large recruitment event in 2016, the population has fluctuated between 170 and 420 adults, with an average population size of approximately 250 adults.
+* This population is now well-established, and is large enough to serve as a donor of frogs for future frog recovery actions. 
+* The 16-year mark-recapture dataset has allowed unprecedented insights into the dynamics of population establishment. 
+It is also allowing us to test hypotheses regarding the drivers of the observed population dynamics, information that is critical for the design and implementation of future frog recovery actions.
+
+![](../../out/plots/70550_mrmr_plots.png){width=75%}
 
 
 ### 70556
