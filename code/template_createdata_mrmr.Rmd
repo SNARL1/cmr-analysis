@@ -18,7 +18,6 @@ library(tidyverse)
 library(RPostgreSQL)
 library(lubridate)
 library(assertthat)
-library(assertr)
 options(readr.show_col_types = FALSE)
 ```
 
