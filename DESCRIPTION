@@ -1,0 +1,23 @@
+Package: cmr-analysis
+Title: Research Compendium for Analysis of Capture-Mark-Recapture Datasets
+Version: 0.0.0.9000
+Authors@R: 
+    person("Roland", "Knapp", , "roland.knapp@ucsb.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-1954-2745"))
+Description: Analysis of capture-mark-recapture datasets for populations of the endangered mountain yellow-legged frog.
+License: LICENSE file
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.0.0
+Imports: 
+  assertthat,
+  cmdstanr,
+  here,
+  knitr,
+  lubridate,
+  mrmr,
+  patchwork,
+  rmarkdown,
+  RPostgreSQL,
+  tidyverse
+
