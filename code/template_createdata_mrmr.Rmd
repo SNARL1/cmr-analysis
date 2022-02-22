@@ -10,7 +10,7 @@ This notebook creates the survey, capture, and translocation files for use in an
 
 Users without credentials to access the database will not be able to create or use the raw data file that is central to this notebook. See cmr-analysis/README.md for details. 
 
-Note that data from the most recent field season may not yet be appended to tables in the amphibians database. If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying code chunks in "fulcrum_data_append.Rmd" into this notebook and executing all code chunks. 
+Note for credentialed users: Data from the most recent field season may not yet be appended to tables in the amphibians database. If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying code chunks in "fulcrum_data_append.Rmd" into this notebook and executing all code chunks. 
 
 ## Load packages
 ```{r load_packages}
