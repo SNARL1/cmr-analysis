@@ -14,6 +14,7 @@ Remotes:
   github::stan-dev/cmdstanr
 Imports: 
   assertthat,
+  bayesplot,
   cmdstanr,
   here,
   knitr,
@@ -23,5 +24,3 @@ Imports:
   rmarkdown,
   RPostgreSQL,
   tidyverse
-
-
