@@ -55,7 +55,7 @@ We used the following R version and OS:
 As an alternative to a local installation, the software requirements have been wrapped in a Docker image (see Dockerfile for source code). 
 To run and use the Docker container, follow these steps: 
 1. [Install Docker](https://docs.docker.com/get-docker/), if not already installed.  
-2. Start the Docker container for the cmr-analysis project (Linux users will need to preface the command with `sudo`): 
+2. Start the Docker container for the cmr-analysis project (Linux users will need to preface the command with `sudo`):  
 
 ```bash
 docker run -e PASSWORD=yourpasswordhere --rm -p 8787:8787 rolandknapp/cmr-analysis
@@ -63,13 +63,12 @@ docker run -e PASSWORD=yourpasswordhere --rm -p 8787:8787 rolandknapp/cmr-analys
 
 This will launch an RStudio server on port 8787. 
 "yourpasswordhere" is a password of your choice that will be used to access the RStudio server (step 3).  
-3. Navigate to http://localhost:8787/. 
-In the login window, username = "rstudio" and password = password you specified in step 2.
+
+3. Navigate to http://localhost:8787/. In the login window, username = "rstudio" and password = password you specified in step 2.
 4. In the RStudio server, [create a new project and clone the cmr-analysis repository into it](https://book.cds101.com/using-rstudio-server-to-clone-a-github-repo-as-a-new-project.html). 
 You are now able to run any of the code in the repository - all of the dependencies are already installed.  
-5. When done working with the repository in the browser window, log out of the RStudio server (File > Sign Out). 
-Close the Docker container running in Terminal with `ctrl-c`. 
-If there are any files from your work in the container that you want to preserve (e.g., plots), save them to your local computer. 
+5. When done working with the repository in the browser window, log out of the RStudio server (File > Sign Out).
+Close the Docker container running in Terminal with `ctrl-c`. If there are any files from your work in the container that you want to preserve (e.g., plots), save them to your local computer.
 Any unsaved files will be lost when the container is closed.   
 
 ### Viewing notebooks
