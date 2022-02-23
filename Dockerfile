@@ -20,4 +20,6 @@ RUN R -e "getwd()"
 
 RUN R -e "devtools::install_deps()"
 
+RUN R -e "cmdstanr::install_cmdstan()"
+
 USER root
