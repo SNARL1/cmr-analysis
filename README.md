@@ -3,59 +3,59 @@
 Capture-mark-recapture analyses associated with mountain yellow-legged frog recovery efforts
 ----------------------------------------
 
-### Authors of this repository
+## Authors of this repository
 
 Roland A. Knapp (roland.knapp(at)ucsb.edu) [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--1954--2745-green.svg)](http://orcid.org/0000-0002-1954-2745)
 
 Thomas C. Smith (tcsmith(at)ucsb.edu [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0001--7908--438X-green.svg)](http://orcid.org/0000-0001-7908-438X)
 
-### Overview of contents
+## Overview of contents
 
-This repository contains data from capture-mark-recapture (CMR) surveys conducted on populations of the endangered [mountain yellow-legged frog](https://www.fws.gov/sacramento/es_species/Accounts/Amphibians-Reptiles/sn_yellow_legged_frog/documents/Mountain-Yellow-Legged-Frog-Conservation-Strategy-Signed-508.pdf), and the code to analyze the survey data. The results from these analyses are used to describe the status of frog populations of particular interest, including populations that were established using translocations or reintroductions (e.g., [Joseph and Knapp 2018](https://doi.org/10.1002/ecs2.2499)), and donor populations from which frogs are collected for translocations and reintroductions. Results from many of these analyses are included in a manuscript (in preparation) that describes the establishment dynamics of frog populations following translocations. 
+This repository is organized as a reproducible research compendium, and focuses on actions conducted to recover populations of the endangered [mountain yellow-legged frog](https://www.fws.gov/sacramento/es_species/Accounts/Amphibians-Reptiles/sn_yellow_legged_frog/documents/Mountain-Yellow-Legged-Frog-Conservation-Strategy-Signed-508.pdf). 
+Specifically, it contains data from capture-mark-recapture (CMR) surveys conducted on translocated, reintroduced, and donor populations (e.g., [Joseph and Knapp 2018](https://doi.org/10.1002/ecs2.2499)), the code to analyze the survey data using [R](https://www.r-project.org/), and a notebook that summarizes the results-to-date for each population. 
+Results from many of these analyses are included in a manuscript (in preparation) that describes the establishment dynamics of frog populations following translocations. 
+Throughout this repository, frog populations are referenced only by 5-digit unique site identifiers. 
+No site names or x-y coordinates are provided to protect these sensitive populations to the maximum extent possible. 
 
 This repository contains the following directories and files:
-* `code/` directory: Contains `Rmd` files that describe the creation of all datasets for each site (`xxxxx_createdata_mrmr.Rmd`), and analysis of those data using the [mrmr](https://github.com/SNARL1/mrmr) package (`xxxx_analysis_mrmr.Rmd`). Raw data used by the `createdata` Rmd files are not provided (see `data/` directory for more information). As such, the `createdata` Rmd files are provided in an effort to be as transparent as possible about how the raw data were processed to create the clean data. 
-* `data/` directory: Contains cleaned data that are error-checked and formatted for use in `mrmr`. Raw data are not provided because information in some fields could reveal the locations of these sensitive frog populations.  
-* `doc/` directory: Contains a notebook file that describes the status of each frog population at which CMR surveys are conducted
-* `out/` directory: Contains the following directories and files:
-  * `plots/` directory: Plots displaying frog survival, adult frog abundance, and frog recruitment. These plots are also provided in the `doc/notebook`. 
+* `code/` directory: `Rmd` files that create datasets for each site (`xxxxx_createdata_mrmr.Rmd`), and analyze these data using the [mrmr](https://github.com/SNARL1/mrmr) package (`xxxx_analysis_mrmr.Rmd`) to describe frog survival, recruitment, and population size. Raw data used by the `createdata` files are not provided (see description of the `data/` directory for more information). As such, the `createdata` files are provided to be as transparent as possible about how the data were processed. 
+* `data/` directory: Cleaned data that are error-checked and formatted for use in analyses. Raw data are not provided because information in some fields could reveal the locations of these sensitive frog populations. See the README file in this directory for a description of the data files. 
+* `doc/` directory: Notebook file that describes the current status of each frog population at which CMR surveys are conducted, based on analysis outputs. See the [Viewing notebooks](https://github.com/SNARL1/cmr-analysis/edit/main/README.md#viewing-notebooks) section for information about viewing the notebook directly without downloading the repository contents. 
+* `out/` directory: 
+  * `plots/` directory: Plots displaying frog survival, adult frog abundance, and frog recruitment. These plots are also provided in the notebook in the `doc/notebook` directory. 
   * `model/` directory: Model fit `Rds` files.
-  * `notebooks_code/`: Html-rendered "notebooks" of all `Rmd` files and their associated outputs. The html version of notebooks can be useful for reviewing the analysis outputs (e.g., plots and tables) for each population without having to run the code in the associated `xxxxx_analysis_mrmr.Rmd` files. The "Viewing Notebooks" section below describes options for viewing the notebooks without downloading the repository contents. 
-  * `tables/` directory: Tables displaying the survival of translocated frogs, by cohort and by individual.
+  * `notebooks_code/`: Html-rendered "notebooks" of all `Rmd` files and their associated outputs. The html version of notebooks can be useful for reviewing the analysis outputs (e.g., plots and tables) for each population without having to run the code in the associated `xxxxx_analysis_mrmr.Rmd` files. The [Viewing notebooks](https://github.com/SNARL1/cmr-analysis/edit/main/README.md#viewing-notebooks) section describes options for viewing the notebooks without downloading the repository contents. 
+  * `tables/` directory: `csv` files describing the survival of translocated frogs, by cohort and by individual.
 
 Numerous files are included in the repository that can be generated by the code (e.g., notebooks, plots). 
 This is done to make these files available to users who may be unable to run the code. 
 
-All sites are referenced only by 5-digit unique identifiers. No site names or x-y coordinates are provided to protect these sensitive populations to the maximum extent possible. 
+## Reproducing the analyses
 
-### About the data
-
-See the README file in the data directory (data/README.md) for a description of each data file.
-
-### Reproducing the analyses
-
-#### Hardware requirements
+### Hardware requirements
 
 Most of the `xxxxx_analysis_mrmr.Rmd` files can be run on a computer with 32 GB of RAM and at least four physical CPU cores. 
 The exception is `70550_analysis_mrmr.Rmd` that, due to the large number of frogs included in the associated datasets, requires at least 128 GB of RAM. 
 
-#### Software requirements
+### Software requirements
 
-We ran the analyses using R and the R packages listed in the DESCRIPTION file. 
+We ran the analyses using [R](https://www.r-project.org/) and the R packages listed in the DESCRIPTION file. 
 All of the packages are available via the CRAN repository except [cmdstanr](https://mc-stan.org/cmdstanr/#installation) and [mrmr](https://snarl1.github.io/mrmr/index.html). 
 An installation of [cmdstan](https://mc-stan.org/cmdstanr/#installation) is also required. 
 
 We used the following R version and OS: 
-* [R](https://www.r-project.org/) version 4.1.2 (2021-11-01) 
+* R version 4.1.2 (2021-11-01) 
 * Platform: x86_64-pc-linux-gnu (64-bit) 
 * Running under: Ubuntu 20.04.3 LTS
 
-#### Docker instructiuons
+### Interactive session in a web browser
 
-As an alternative to a local installation, the software requirements have been wrapped in a Docker image (see Dockerfile for source code). 
-To run and use the Docker container, follow these steps: 
+As an alternative to a local installation of this repository (via `git clone`), the software requirements have been wrapped in a Docker image (see Dockerfile for source code). 
+This allows viewing and interacting with the research compendium in a web browser window, with only minimal installation locally of software. 
+
+To start an interactive session, follow these steps: 
 1. [Install Docker](https://docs.docker.com/get-docker/), if not already installed.  
-2. Start the Docker container for the cmr-analysis project (Linux users will need to preface the command with `sudo`):  
+2. Start the Docker container for this research compendium (Linux users will need to preface the command with `sudo`):  
 
 ```bash
 docker run -e PASSWORD=yourpasswordhere --rm -p 8787:8787 rolandknapp/cmr-analysis
@@ -65,7 +65,7 @@ This will launch an RStudio server on port 8787.
 "yourpasswordhere" is a password of your choice that will be used to access the RStudio server (step 3).  
 
 3. Navigate to http://localhost:8787/. In the login window, username = "rstudio" and password = password you specified in step 2.
-4. In the RStudio server, [create a new project and clone the cmr-analysis repository into it](https://book.cds101.com/using-rstudio-server-to-clone-a-github-repo-as-a-new-project.html). 
+4. In the RStudio server, create a new project and clone the cmr-analysis repository into it ([as in this example](https://book.cds101.com/using-rstudio-server-to-clone-a-github-repo-as-a-new-project.html)). 
 You are now able to run any of the code in the repository - all of the dependencies are already installed.  
 5. When done working with the repository in the browser window, log out of the RStudio server (File > Sign Out).
 Close the Docker container running in Terminal with `ctrl-c`. If there are any files from your work in the container that you want to preserve (e.g., plots), save them to your local computer.
@@ -74,10 +74,7 @@ Any unsaved files will be lost when the container is closed.
 ### Viewing notebooks
 
 HTML-rendered notebooks are available in the `doc/` and `out/` directories. 
-Notebooks in the `out/` directory contain details of the data creation steps and analysis results for each population.  
-The notebook in the `doc/` directory provides general summaries of the status of each frog population, based on results in `analysis` notebooks in the `out\` directory. 
-To view an HTML-rendered notebook directly from this repository (and not instead see the HTML source code when you open the file), click on the notebook you want 
-view and add this prefix to the URL displayed in the address bar: `https://htmlpreview.github.io/?`. For example, for the notebook file 
+To view an HTML-rendered notebook directly from this repository, click on the notebook and add this prefix to the URL displayed in the address bar: `https://htmlpreview.github.io/?`. For example, for the notebook file 
 `notebook_results.nb.html`, add `https://htmlpreview.github.io/?` to the notebook's URL
 
 `https://github.com/SNARL1/cmr-analysis/blob/main/doc/notebook/notebook_results.nb.html`
@@ -89,14 +86,6 @@ to get
 Hit "Return" or "Enter" on your keyboard and the HTML-rendered notebook will appear. 
 
 If, after clicking on the notebook file, you see a message that the notebook file is too big to view, click the "View raw" link or "Download" button, and add the address prefix as described above. 
-
-### Licenses
-
-Code: [MIT](https://choosealicense.com/licenses/mit/) | year: 2022, copyright holder: Roland Knapp
-
-Data: [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
-
-See [LICENSE](https://github.com/SNARL1/cmr-analysis/blob/main/LICENSE.md) for details. 
 
 ### Contact
 
