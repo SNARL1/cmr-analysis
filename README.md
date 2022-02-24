@@ -71,7 +71,7 @@ You are now able to run any of the code in the repository - all of the dependenc
 Close the Docker container running in Terminal with `ctrl-c`. If there are any files from your work in the container that you want to preserve (e.g., plots), save them to your local computer.
 Any unsaved files will be lost when the container is closed.   
 
-### Viewing notebooks
+## Viewing notebooks
 
 HTML-rendered notebooks are available in the `doc/` and `out/` directories. 
 To view an HTML-rendered notebook directly from this repository, click on the notebook and add this prefix to the URL displayed in the address bar: `https://htmlpreview.github.io/?`. For example, for the notebook file 
@@ -87,7 +87,7 @@ Hit "Return" or "Enter" on your keyboard and the HTML-rendered notebook will app
 
 If, after clicking on the notebook file, you see a message that the notebook file is too big to view, click the "View raw" link or "Download" button, and add the address prefix as described above. 
 
-### Contact
+## Contact
 
 Roland Knapp, Research Biologist, University of California Sierra Nevada Aquatic Research Laboratory, Mammoth Lakes, CA 93546 USA; rolandknapp(at)ucsb.edu,
 <https://mountainlakesresearch.com/roland-knapp/>
