@@ -2,9 +2,9 @@
 title: "Notebook: Results from analysis of CMR datasets"
 author: "Roland Knapp"
 output: 
-  html_notebook:
+  github_document:
     toc: true
-    theme: united
+#    theme: united
 editor_options: 
   chunk_output_type: inline
 ---
