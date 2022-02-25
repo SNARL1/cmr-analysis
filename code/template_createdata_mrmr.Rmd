@@ -7,6 +7,8 @@ editor_options:
 ---
 
 This notebook creates the survey, capture, and translocation files for use in analyzing capture-mark-recapture data using the *mrmr* package. The code retrieves data from the PostgreSQL amphibians database, runs error checks, and creates the relevant files in *mrmr* format. 
+The code is written in distinct chunks to allow review of results from one chunk before running the next. 
+For example, review of the raw data files is necessary to identify potentially problematic records for review and possible removal from the data set. 
 
 Users without credentials to access the database will not be able to create or use the raw data file that is central to this notebook. See cmr-analysis/README.md for details. 
 
@@ -215,6 +217,13 @@ survey_70414_mrmr %>% count(site_id, survey_date) %>% filter(n > 1)
 
 # Check for sites that were unsuitable for survey
 survey_70414_mrmr %>% filter(visit_status != "suitable")
+
+# Check for cmr and translocation conducted on same day
+survey_70414_mrmr %>% 
+  filter(survey_type == "translocation") %>% 
+  select(survey_date) %>% 
+  inner_join(survey_70414_mrmr, by = "survey_date") %>% 
+  filter(survey_type == "cmr")
 ```
 
 ### Clean survey data
@@ -251,7 +260,7 @@ survey_70414_mrmr <- survey_70414_mrmr %>%
   mutate(primary_period = row_number()) %>% 
   group_by(primary_period) %>% 
   mutate(secondary_period = seq_len(n()),
-         secondary_period = replace(secondary_period, survey_type == "translocation", 0))
+         secondary_period = replace(secondary_period, survey_type != "cmr", 0))
 ```
 
 ### Save/retrieve cleaned survey file
@@ -366,6 +375,7 @@ setdiff(capture_70414$visit_date, survey_70414_mrmr$survey_date) %>% as.Date(ori
 
 # Check for surveys that lack associated captures
 survey_70414_mrmr %>% 
+  filter(survey_type == "cmr") %>% 
   select(survey_date, primary_period) %>% 
   rename(visit_date = survey_date) %>% 
   left_join(capture_70414, by = c("visit_date")) %>% 
@@ -393,7 +403,8 @@ capture_70414_mrmr <- capture_70414 %>%
 capture_70414_mrmr %>% write_csv(here::here("data", "clean", "70414_capture.csv"))
 ```
 ```{r read_cleaned_capture_data}
-capture_70414_mrmr <- read_csv(here::here("data", "clean", "70414_capture.csv"))
+capture_70414_mrmr <- read_csv(here::here("data", "clean", "70414_capture.csv")) %>% 
+    mutate(pit_tag_id = as.character(pit_tag_id))
 ```
 
 
