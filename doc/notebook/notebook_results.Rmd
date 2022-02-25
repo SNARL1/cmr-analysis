@@ -39,7 +39,7 @@ The reasons for this changed dynamic are under study, and appear to involve evol
 ### 70370
 
 #### Survival
-* Very low 1-year survival of both the 2016 and 2018 trannslocated cohorts (0.04 and 0.17, respectively). 
+* Very low 1-year survival of both the 2016 and 2018 translocated cohorts (0.04 and 0.17, respectively). 
 * Habitat looks very good for *R. sierrae* for both summer and winter, so it remains unclear what the factor limiting frog survival at this site is. 
 It is unlikely related to winter oxygen levels in the water because trout thrived here for decades. 
 
@@ -51,6 +51,26 @@ It is unlikely related to winter oxygen levels in the water because trout thrive
 * The absence of any frogs during the 2020 survey suggests that the population is extirpated. 
 
 ![](../../out/plots/70370_mrmr_plots.png){width=75%}
+
+### 70413
+
+#### Survival
+* Relatively high 1-year survival of the 2013, 2015, and 2017 cohorts of translocated frogs (0.69, 0.64, 0.56, respectively).
+
+#### Reproduction
+* Egg masses, tadpoles, and/or subadults have been observed annually starting in 2014, with a maximum count summed across all sites of 800 in 2015.
+* Subadults were first observed in 2015 and are always seen in relatively low numbers (maximum count = 27).
+
+#### Recruitment
+* Recruitment of new adults was first observed in 2016, and has occurred in all years since. 
+* Number of new recruits seems quite regular, with 20, 15, and 24 recruits tagged in 2018, 2020, and 2021, respectively. 
+
+#### Population size
+* From 2017 to early-2021 (i.e., prior to translocation and reintroduction of 117 frogs), estimated population size across all sites was stable at approximately 50 adults in each year.
+* This population, although still relatively small given the abundant high quality habitat, appears well-established and self-sustaining. 
+* The 2021 translocation and reintroduction is likely to substantially increase the population size. 
+
+![](../../out/plots/70413_mrmr_plots.png){width=75%}
 
 ### 70414
 
@@ -115,7 +135,7 @@ Although smaller than hoped for, this may be a typical population size at this e
 
 #### Survival
 * Relatively high 1-year survival of the 2006 cohort of translocated frogs (0.61). 
-* Survival of 2013 cohort of translocated frogs was substantially lower (0.29).
+* Survival of 2013 cohort of translocated frogs was substantially lower (0.29). 
 
 #### Reproduction
 * Tadpoles and subadults were first observed in 2008. 
