@@ -4,7 +4,6 @@ author: "Roland Knapp"
 output: 
   github_document:
     toc: true
-#    theme: united
 editor_options: 
   chunk_output_type: inline
 ---
