@@ -37,7 +37,7 @@ This is done to make these files available to users who may be unable to run the
 Most of the `xxxxx_analysis_mrmr.Rmd` files can be run on a computer with 32 GB of RAM and at least four physical CPU cores. 
 The exception is `70550_analysis_mrmr.Rmd` that, due to the large number of frogs included in the associated datasets, requires 256 GB of RAM. 
 Using 16 cores and 256 GB of RAM, the run time for `70550_analysis_mrmr.Rmd` is approximately 6 hours. 
-Run times for all other 'xxxxx_analysis_mrmr.Rmd` files, using 8 cores and 32 GB of RAM, are typically 5-30 minutes. 
+Run times for all other `xxxxx_analysis_mrmr.Rmd` files, using 8 cores and 32 GB of RAM, are typically 5-30 minutes. 
 
 ### Software requirements
 
