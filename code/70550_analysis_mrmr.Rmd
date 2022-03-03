@@ -7,15 +7,18 @@ editor_options:
 ---
 This notebook analyzes capture-mark-recapture data using the *mrmr* package. The code creates the required survey, capture, and translocation data frames from saved CSV files (created by xxxxx_createdata_mrmr.Rmd), checks the datasets, fits the model, evaluates potential non-convergence of the MCMC algorithm, and visualizes model results. 
 
+The following code differs in several important respects from other xxxxx_analysis_mrmr.Rmd files in this directory. 
+Specifically, due to the large size of the frog capture history matrix, the file is formatted for running on a high-performance computing server with 32 CPU cores (16 cores are used under the current specifications) and 256 GB of RAM.  
+
 ## Install latest versions of cmdstanr, cmdstan, and mrmr packages
 Run only if updated versions were released since previous install
 ```{r install_stan_packages, message=FALSE, warning=FALSE}
 # install cmdstanr and cmdstan
-install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-cmdstanr::install_cmdstan()
+#install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+#cmdstanr::install_cmdstan()
 
 # install mrmr
-remotes::install_github("SNARL1/mrmr")
+#remotes::install_github("SNARL1/mrmr")
 ```
 
 ## Load required packages
@@ -49,7 +52,8 @@ model_70550 <- fit_model(
                     chains = 4, 
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
-                    threads_per_chain = 2) 
+                    threads_per_chain = 4,
+                    dir = "/home/snarg/roland/70550") # to prevent writing to a locked system directory 
 ```
 * Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).
 
@@ -57,9 +61,10 @@ model_70550 <- fit_model(
 This step prevents having to rerun the model in the event of a crash during model visualizations in subsequent code blocks. Model files can be large, so this saves the file in a compressed format.
 ```{r write_model}
 write_rds(model_70550, here::here("out", "model", "70550_model.rds"), "xz", compression = 9L)
+gc() # to free unused memory
 ```
 ```{r read_model}
-model_70550 <- read_rds(here::here("out", "70550_model.rds"))
+# model_70550 <- read_rds(here::here("out", "model", "70550_model.rds"))
 ```
 
 ### Diagnose potential non-convergence of the MCMC algorithm
@@ -73,15 +78,16 @@ pars_to_plot <- c('alpha_lambda',
 bayesplot::mcmc_trace(model_70550$m_fit$draws(pars_to_plot))
 
 model_70550$m_fit$summary(pars_to_plot)
+gc() # to free unused memory
 ```
 
 ## Visualize model results
 ### Default plots
 Note: Custom plots (produced in next code chunk: "plots_custom") are often easier to interpret than the default plots produced by this code chunk.
 ```{r model_visualize}
-plot_model(model_70550, what = "abundance")
-plot_model(model_70550, what = "recruitment")
-plot_model(model_70550, what = "survival")
+# plot_model(model_70550, what = "abundance")
+# plot_model(model_70550, what = "recruitment")
+# plot_model(model_70550, what = "survival")
 ```
 
 ### Customize plots
@@ -106,7 +112,8 @@ p1 / p2 / p3
 
 ### Save custom plots
 ```{r save_plot}
-ggsave(here::here("out", "70550_mrmr_plots.png"), width = 6.5, height = 7.2)
+ggsave(here::here("out", "plots", "70550_mrmr_plots.png"), width = 6.5, height = 7.2)
+gc() # to free unused memory
 ```
 
 ## Create survival tables
@@ -120,6 +127,6 @@ survival_ind <- survival_table(model_70550, by_individual = TRUE)
 
 ### Save survival tables
 ```{r save_survival_tables}
-survival_cohort %>% write_csv(here::here("out", "70550_survival_cohort.csv"))
-survival_ind %>% write_csv(here::here("out", "70550_survival_ind.csv"))
+survival_cohort %>% write_csv(here::here("out", "tables", "70550_survival_cohort.csv"))
+survival_ind %>% write_csv(here::here("out", "tables", "70550_survival_ind.csv"))
 ```
