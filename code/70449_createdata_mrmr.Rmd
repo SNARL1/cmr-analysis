@@ -122,10 +122,14 @@ translocation_70449_mrmr <- translocation_70449 %>%
 
 ### Save/retrieve cleaned translocation data
 ```{r save_cleaned_translocation_data, message=FALSE}
-translocation_70449_mrmr %>% write_csv(here::here("data", "clean", "70449_translocation.csv"))
+translocation_70449_mrmr %>% write_csv(here::here("data", "clean", "70449_translocation_groups.csv"))
+```
+```{r}
+# version without groups for downstream analyses
+translocation_70449_mrmr %>% select(-group) %>% write_csv(here::here("data", "clean", "70449_translocation.csv"))
 ```
 ```{r read_cleaned_translocation_data, message=FALSE}
-translocation_70449 <- read_csv(here::here("data", "clean", "70449_translocation.csv")) %>% 
+translocation_70449 <- read_csv(here::here("data", "clean", "70449_translocation_groups.csv")) %>% 
   mutate(pit_tag_id = as.character(pit_tag_id))
 ```
 
