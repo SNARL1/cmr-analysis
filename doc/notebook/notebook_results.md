@@ -55,8 +55,8 @@ chytridiomycosis, the disease caused by Bd.
 
 -   Very low 1-year survival of the 2006 cohort of translocated frogs
     (0.12). Only six adults seen in 2007 and none thereafter.
--   *T. elegans* never seen at site, so likely not responsible for low
-    survival.
+-   *T. elegans* never seen at site, so are likely not responsible for
+    low survival.
 
 #### Reproduction
 
@@ -284,7 +284,7 @@ chytridiomycosis, the disease caused by Bd.
     conducted on 08-23. Tadpole count on 2021-07-22 indicated 350
     second-year animals, suggesting high overwinter survival of
     first-year tadpoles compared to that shown by 2019 cohort (perhaps
-    due to light 2020 snow year –> long 2020 summer –> large tadpole
+    due to light 2020 snow year –\> long 2020 summer –\> large tadpole
     size going into 2021 winter).
 -   2021 cohort contained approximately 435 individuals, based on count
     conducted on 2021-08-26.
@@ -403,15 +403,15 @@ chytridiomycosis, the disease caused by Bd.
     observed in 2019, 2020, and 2021.
 -   2019 cohort contained at least 250 individuals, based on count
     conducted on 09-Sep-2019. Cohort appeared to experience relatively
-    low overwinter survival (perhaps due to the heavy 2019 snow year –>
-    short 2019 summer –> small tadpole size going into 2020 winter),
+    low overwinter survival (perhaps due to the heavy 2019 snow year –\>
+    short 2019 summer –\> small tadpole size going into 2020 winter),
     with approximately 25 second-year tadpoles counted on 20-Aug-2020. 5
     metamorphs seen during the August 2020 CMR.
 -   2020 cohort contained at least 320 individuals, based on count
     conducted on 20-Aug-2020. Tadpole count on 25-Jun-2021 indicated 386
     second-year animals, suggesting high overwinter survival of
     first-year tadpoles compared to that shown by 2019 cohort (perhaps
-    due to light 2020 snow year –> long 2020 summer –> large tadpole
+    due to light 2020 snow year –\> long 2020 summer –\> large tadpole
     size going into 2021 winter).
 -   2021 cohort contained at least 305 individuals, based on count
     conducted on 18-Aug-2021.
@@ -430,8 +430,8 @@ chytridiomycosis, the disease caused by Bd.
 -   2021 estimated population size is approximately 28 adults.
 -   As of mid-August 2021, frog population extends from Lower Pool
     outlet to 72973.
--   72973 (uppermost pond) was colonized by adults and metamorphs
-    in 2020.
+-   72973 (uppermost pond) was colonized by adults and metamorphs in
+    2020.
 -   All reproduction is occurring in 74976.
 -   Population seems likely to become firmly established in next few
     years.
