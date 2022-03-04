@@ -72,21 +72,9 @@ This will launch an RStudio server on port 8787.
 2.  In the RStudio server, create a new project and clone the cmr-analysis repository into it ([as in this example](https://book.cds101.com/using-rstudio-server-to-clone-a-github-repo-as-a-new-project.html)). You are now able to run any of the code in the repository - all of the dependencies are already installed.  
 3.  When done working with the repository in the browser window, log out of the RStudio server (File \> Sign Out). Close the Docker container running in Terminal with `ctrl-c`. If there are any files from your work in the container that you want to preserve (e.g., plots), save them to your local computer. Any unsaved files will be lost when the container is closed.
 
-## Viewing notebooks
+## Notebooks
 
-HTML-rendered notebooks are available in the `out/` directory.
-To view an HTML-rendered notebook directly from this repository, click on the notebook and add this prefix to the URL displayed in the address bar: `https://htmlpreview.github.io/?`.
-For example, for the notebook file `notebook_results.nb.html`, add `https://htmlpreview.github.io/?` to the notebook's URL
-
-`https://github.com/SNARL1/cmr-analysis/blob/main/doc/notebook/notebook_results.nb.html`
-
-to get
-
-`https://htmlpreview.github.io/?https://github.com/SNARL1/cmr-analysis/blob/main/doc/notebook/notebook_results.nb.html`.
-
-Hit "Return" or "Enter" on your keyboard and the HTML-rendered notebook will appear.
-
-If, after clicking on the notebook file, you see a message that the notebook file is too big to view, click the "View raw" link or "Download" button, and add the address prefix as described above.
+Notebooks are available in the [doc/](https://github.com/SNARL1/cmr-analysis/tree/main/doc#readme) and [out/notebooks_code/](https://github.com/SNARL1/cmr-analysis/tree/main/out/notebooks_code#readme) directories. Links are to README files that describe how to view notebooks directly from GitHub. The `doc/` notebook provides summaries of results from CMR analyses of survey data from each of the study populations. The `out/notebooks_code/` notebooks are rendered directly from the `xxxxx_createdata_mrmr" and `xxxxx_createdata_mrmr` Rmd files, and describe dataset creation/data analysis steps for each population. 
 
 ## Contact
 
