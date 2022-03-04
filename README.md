@@ -74,7 +74,7 @@ This will launch an RStudio server on port 8787.
 
 ## Notebooks
 
-Notebooks are available in the [doc/](https://github.com/SNARL1/cmr-analysis/tree/main/doc#readme) and [out/notebooks_code/](https://github.com/SNARL1/cmr-analysis/tree/main/out/notebooks_code#readme) directories. Links are to README files that describe how to view notebooks directly from GitHub. The `doc/` notebook provides summaries of results from CMR analyses for each of the study populations. The `out/notebooks_code/` notebooks are rendered directly from the `xxxxx_createdata_mrmr" and `xxxxx_createdata_mrmr` Rmd files, and describe dataset creation/data analysis steps for each population. 
+Notebooks are available in the [doc/](https://github.com/SNARL1/cmr-analysis/tree/main/doc#readme) and [out/notebooks_code/](https://github.com/SNARL1/cmr-analysis/tree/main/out/notebooks_code#readme) directories. Links are to README files that describe how to view notebooks directly from GitHub. The `doc/` notebook provides summaries of results from CMR analyses for each of the study populations. The `out/notebooks_code/` notebooks are rendered directly from the `xxxxx_createdata_mrmr` and `xxxxx_createdata_mrmr` Rmd files, and describe dataset creation/data analysis steps for each population. 
 
 ## Contact
 
