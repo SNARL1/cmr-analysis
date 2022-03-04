@@ -1,5 +1,5 @@
 # Code notebooks from: cmr-analysis
-To view an HTML-rendered notebook directly from this repository (and not instead see the HTML source code when you open the file), click on the notebook you want 
+To view an HTML-rendered notebook directly from this directory (and not instead see the HTML source code when you click on the file), click on the notebook you want 
 view and add this prefix to the URL displayed in the address bar: `https://htmlpreview.github.io/?`. For example, for the notebook file 
 `74976_analysis_mrmr.nb.html`, add `https://htmlpreview.github.io/?` to the notebook's URL
 
