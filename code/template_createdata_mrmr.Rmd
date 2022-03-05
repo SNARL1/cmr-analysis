@@ -6,15 +6,19 @@ editor_options:
   chunk_output_type: inline
 ---
 
-This notebook creates the survey, capture, and translocation files for use in analyzing capture-mark-recapture data using the *mrmr* package. The code retrieves data from the PostgreSQL amphibians database, runs error checks, and creates the relevant files in *mrmr* format. 
-The code is written in distinct chunks to allow review of results from one chunk before running the next. 
-For example, review of the raw data files is necessary to identify potentially problematic records for review and possible removal from the data set. 
+This notebook creates the survey, capture, and translocation files for use in analyzing capture-mark-recapture data using the *mrmr* package.
+The code retrieves data from the PostgreSQL amphibians database, runs error checks, and creates the relevant files in *mrmr* format.
+The code is written in distinct chunks to allow review of results from one chunk before running the next.
+For example, review of the raw data files is necessary to identify potentially problematic records for review and possible removal from the data set.
 
-Users without credentials to access the database will not be able to create or use the raw data file that is central to this notebook. See cmr-analysis/README.md for details. 
+Users without credentials to access the database will not be able to create or use the raw data file that is central to this notebook.
+See cmr-analysis/README.md for details.
 
-Note for credentialed users: Data from the most recent field season may not yet be appended to tables in the amphibians database. If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying code chunks in "fulcrum_data_append.Rmd" into this notebook and executing all code chunks. 
+Note for credentialed users: Data from the most recent field season may not yet be appended to tables in the amphibians database.
+If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying code chunks in "fulcrum_data_append.Rmd" into this notebook and executing all code chunks.
 
 ## Load packages
+
 ```{r load_packages}
 library(tidyverse)
 library(RPostgreSQL)
@@ -24,10 +28,13 @@ options(readr.show_col_types = FALSE)
 ```
 
 ## Create translocation dataset
-Not all sites have received frog translocations. Run or skip the following code chunks as necessary. 
 
-### Connect to PostgreSQL database. 
-```{r}
+Not all sites have received frog translocations.
+Run or skip the following code chunks as necessary.
+
+### Connect to PostgreSQL database.
+
+```{r db-connect1}
 con = dbConnect(dbDriver("PostgreSQL"),
                 host = Sys.getenv("host"), 
                 port = Sys.getenv("port"), 
@@ -38,7 +45,8 @@ con = dbConnect(dbDriver("PostgreSQL"),
 ```
 
 ### Retrieve translocation data from database
-```{sql retrieve_translocation_data, connection=con, output.var = "translocation_70414"}
+
+```{sql retrieve-translocation-data, connection=con, output.var = "translocation_70414"}
 select 
   release_siteid1, 
   release_date, 
@@ -58,24 +66,31 @@ inner join relocate_frog on relocate.id = relocate_id
 where release_siteid1 = 70414 and
       type = 'translocation'
 ```
-```{r}
+
+```{r db-disconnect1}
 dbDisconnect(con)
 rm(con)
 ```
-Review the translocation data subset for potential problems. 
+
+Review the translocation data subset for potential problems.
 
 ### Save/retrieve raw translocation data
-```{r save_raw_translocation_data, message=FALSE}
+
+```{r save-raw-translocation-data}
 translocation_70414 %>% write_csv(here::here("data", "raw", "70414_translocation_raw.csv"))
 ```
-```{r read_raw_translocation_data, message=FALSE}
-translocation_70414 <- read_csv(here::here("data", "raw", "70414_translocation_raw.csv")) %>% 
-  mutate(pit_tag_ref = as.character(pit_tag_ref))
+
+```{r read-raw-translocation-data}
+#translocation_70414 <- read_csv(here::here("data", "raw", "70414_translocation_raw.csv")) %>% 
+#  mutate(pit_tag_ref = as.character(pit_tag_ref))
 ```
 
 ### Translocation data checks
-Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved. Run lines of code one at a time to allow easy evaluation of messages and outputs. 
-```{r translocation_data_checks, message=FALSE}
+
+Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved.
+Run lines of code one at a time to allow easy evaluation of messages and outputs.
+
+```{r translocation-data-checks}
 # Check for records where pit_tag_ref is NULL
 assert_that(noNA(translocation_70414$pit_tag_ref))
 
@@ -99,12 +114,14 @@ translocation_70414 %>% distinct(release_date) %>% glimpse()
 ```
 
 ### Clean translocation data
-```{r clean_translocation_data}
+
+```{r clean-translocation-data}
 # No problems to clean
 ```
 
 ### Create final translocation dataset formatted for mrmr
-```{r final_translocation_data}
+
+```{r final-translocation-data}
 translocation_70414_mrmr <- translocation_70414 %>% 
   rename(pit_tag_id = pit_tag_ref,
          site_id = release_siteid1) %>% 
@@ -113,9 +130,11 @@ translocation_70414_mrmr <- translocation_70414 %>%
 ```
 
 ### Save/retrieve cleaned translocation data
-```{r save_cleaned_translocation_data, message=FALSE}
+
+```{r save-cleaned-translocation-data, message=FALSE}
 translocation_70414_mrmr %>% write_csv(here::here("data", "clean", "70414_translocation.csv"))
 ```
+
 ```{r read_cleaned_translocation_data, message=FALSE}
 translocation_70414_mrmr <- read_csv(here::here("data", "clean", "70414_translocation.csv")) %>% 
   mutate(pit_tag_id = as.character(pit_tag_id))
@@ -123,8 +142,9 @@ translocation_70414_mrmr <- read_csv(here::here("data", "clean", "70414_transloc
 
 ## Create survey dataset
 
-### Connect to PostgreSQL database. 
-```{r}
+### Connect to PostgreSQL database
+
+```{r db-connect2}
 con = dbConnect(dbDriver("PostgreSQL"),
                 host = Sys.getenv("host"), 
                 port = Sys.getenv("port"), 
@@ -135,8 +155,10 @@ con = dbConnect(dbDriver("PostgreSQL"),
 ```
 
 ### Retrieve survey data from database
+
 If surveys at which no frogs were captured are classified as "ves", include in "where" statement (e.g., where site_id = 70619 and survey_type in ('cmr', 'visual'))
-```{sql retrieve_survey_data, connection=con, output.var = "survey_70414"}
+
+```{sql retrieve-survey-data, connection=con, output.var = "survey_70414"}
 select 
   site_id, 
   visit_date, 
@@ -154,37 +176,45 @@ inner join survey on visit.id = visit_id
 where site_id = 70414 and
       survey_type = 'cmr'
 ```
-```{r, message=FALSE}
+
+```{r db-disconnect2}
 dbDisconnect(con)
 rm(con)
 ```
 
 ### Save/retrieve raw survey data
-```{r save_raw_survey_data, message=FALSE}
+
+```{r save-raw-survey-data}
 survey_70414 %>% write_csv(here::here("data", "raw", "70414_survey_raw.csv"))
 ```
-```{r read_raw_survey_data, message=FALSE}
-survey_70414 <- read_csv(here::here("data", "raw", "70414_survey_raw.csv"))
+
+```{r read-raw-survey-data}
+#survey_70414 <- read_csv(here::here("data", "raw", "70414_survey_raw.csv"))
 ```
 
-### When multiple numbered sites exist in survey area, include only one survey for entire site on each survey date
-70414 is the primary site at this location and was surveyed during each secondary period. 
-Because cmr and visual surveys exist for same date, keep cmr survey only. Change survey_type "visual" to "cmr".
+### Include only relevant site visits
+
+When multiple numbered sites exist in survey area, include only one survey for entire site on each survey date 70414 is the primary site at this location and was surveyed during each secondary period.
+Because cmr and visual surveys exist for same date, keep cmr survey only.
+Change survey_type "visual" to "cmr".
 Restrict date range to include only relevant surveys.
-```{r check_survey_history}
+
+```{r check-survey-history}
 # Check if primary site was surveyed during each visit
 survey_70414 %>% 
   add_count(visit_date) %>% 
   filter(n == 1 & site_id != "70414")
 ```
-```{r} 
+
+```{r cmr-vs-ves}
 # If cmr and ves surveys exist, check for visits that included only survey_type = "visual" to determine whether survey date should be included. 
 survey_70414 %>% 
   add_count(visit_date) %>% 
   filter(n == 1 & survey_type == "visual") %>% 
   arrange(visit_date)
 ```
-```{r include_relevant_surveys}
+
+```{r include-relevant-surveys}
 # When only cmr surveys exist in survey history
 survey_70414 <- survey_70414 %>% 
   filter(site_id == 70414 & visit_date > "2014-06-28") %>%
@@ -200,18 +230,23 @@ survey_70414 <- survey_70414 %>%
 ```
 
 ### Add translocation dates as surveys
+
 To meet mrmr format requirement
-```{r add_translocation_surveys}
+
+```{r add-translocations-as-surveys}
 survey_70414_mrmr <- translocation_70414_mrmr %>% 
   distinct(site_id, release_date, type) %>% 
   rename(survey_type = type, survey_date = release_date) %>% bind_rows(survey_70414) %>% 
   arrange(survey_date) 
 ```
+
 Review records for potential problematic surveys, for example, based on comment fields and fields describing current conditions.
 
 ### Survey data checks
+
 Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved.
-```{r survey_data_checks}
+
+```{r survey-data-checks}
 # Check for duplicate survey dates
 survey_70414_mrmr %>% count(site_id, survey_date) %>% filter(n > 1)
 
@@ -227,16 +262,16 @@ survey_70414_mrmr %>%
 ```
 
 ### Clean survey data
-```{r clean_survey_data}
+
+```{r clean-survey-data}
 # Drop duplicate surveys
 survey_70414_mrmr <- survey_70414_mrmr %>% 
   distinct(survey_date, .keep_all = TRUE)
-
-
 ```
 
 ### Create primary and secondary period columns in mrmr format
-```{r create_period_columns}
+
+```{r create-period-columns}
 # For robust design dataset
 survey_70414_mrmr <- survey_70414_mrmr %>%
   select(site_id, survey_date, survey_type) %>% 
@@ -263,18 +298,21 @@ survey_70414_mrmr <- survey_70414_mrmr %>%
          secondary_period = replace(secondary_period, survey_type != "cmr", 0))
 ```
 
-### Save/retrieve cleaned survey file
-```{r save_cleaned_survey_data}
+### Save cleaned survey file
+
+```{r save-cleaned-survey-data}
 survey_70414_mrmr %>% write_csv(here::here("data", "clean", "70414_survey.csv"))
 ```
-```{r read_cleaned_survey_data}
-survey_70414_mrmr <- read_csv(here::here("data", "clean", "70414_survey.csv"))
+
+```{r read-cleaned-survey-data}
+# survey_70414_mrmr <- read_csv(here::here("data", "clean", "70414_survey.csv"))
 ```
 
 ## Create capture dataset
 
-### Connect to PostgreSQL database. 
-```{r}
+### Connect to PostgreSQL database.
+
+```{r db-connect3}
 con = dbConnect(dbDriver("PostgreSQL"),
                 host = Sys.getenv("host"), 
                 port = Sys.getenv("port"), 
@@ -285,7 +323,8 @@ con = dbConnect(dbDriver("PostgreSQL"),
 ```
 
 ### Retrieve frog capture data from database
-```{sql retrieve_capture_data, connection=con, output.var = "capture_70414"}
+
+```{sql retrieve-capture-data, connection=con, output.var = "capture_70414"}
 select 
   site_id, 
   visit_date, 
@@ -309,30 +348,37 @@ inner join capture_survey on survey.id = survey_id
 where site_id in (70414, 70688) and
       survey_type = 'cmr'
 ```
-```{r, message=FALSE}
+
+```{r db-disconnect3}
 dbDisconnect(con)
 rm(con)
 ```
 
 ### Save/retrieve raw capture data
-```{r save_raw_capture_data, message=FALSE}
+
+```{r save-raw-capture-data}
 capture_70414 %>% write_csv(here::here("data", "raw", "70414_capture_raw.csv"))
 ```
-```{r read_raw_capture_data, message=FALSE}
-capture_70414 <- read_csv(here::here("data", "raw", "70414_capture_raw.csv")) %>% 
-  mutate(pit_tag_ref = as.character(pit_tag_ref))
+
+```{r read-raw-capture-data}
+# capture_70414 <- read_csv(here::here("data", "raw", "70414_capture_raw.csv")) %>% 
+#  mutate(pit_tag_ref = as.character(pit_tag_ref))
 ```
+
 Review records for potential problematic captures, for example, based on comment fields and fields describing frog characteristics (including tag_new).
 
 ### Retain only relevant columns
-```{r capture_relevant_columns}
+
+```{r capture-relevant-columns}
 capture_70414 <- capture_70414 %>% 
   select(-visit_id, -survey_id, -capture_id)
 ```
 
 ### Capture data checks
+
 Run checks before and after data cleaning)
-```{r capture_data_checks, message=FALSE}
+
+```{r capture-data-checks, message=FALSE}
 # Check for records where pit_tag_ref is NULL
 assert_that(noNA(capture_70414$pit_tag_ref))
 
@@ -386,30 +432,27 @@ setdiff(survey_70414_mrmr$survey_date, capture_70414$visit_date) %>% as.Date(ori
 ```
 
 ### Clean capture data
-```{r clean_capture_data}
+
+```{r clean-capture-data}
 # No problems to clean
 ```
 
 ### Create final capture dataset formatted for mrmr
-```{r final_capture_data}
+
+```{r final-capture-data}
 capture_70414_mrmr <- capture_70414 %>%
   rename(survey_date = visit_date, pit_tag_id = pit_tag_ref) %>%
   arrange(survey_date, pit_tag_id) %>%
   select(site_id, survey_date, pit_tag_id)
 ```
 
-### Save/retrieve cleaned capture data
-```{r save_cleaned_capture_data}
+### Save cleaned capture data
+
+```{r save-cleaned-capture-data}
 capture_70414_mrmr %>% write_csv(here::here("data", "clean", "70414_capture.csv"))
 ```
-```{r read_cleaned_capture_data}
-capture_70414_mrmr <- read_csv(here::here("data", "clean", "70414_capture.csv")) %>% 
-    mutate(pit_tag_id = as.character(pit_tag_id))
+
+```{r read-cleaned-capture-data}
+# capture_70414_mrmr <- read_csv(here::here("data", "clean", "70414_capture.csv")) %>% 
+#    mutate(pit_tag_id = as.character(pit_tag_id))
 ```
-
-
-
-
-
-
-

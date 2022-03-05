@@ -9,7 +9,7 @@ This notebook analyzes capture-mark-recapture data using the *mrmr* package. The
 
 ## Install latest versions of cmdstanr, cmdstan, and mrmr packages
 Run only if updated versions were released since previous install
-```{r install_stan_packages, message=FALSE, warning=FALSE}
+```{r install-stan-mrmr-packages}
 # install cmdstanr and cmdstan
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 cmdstanr::install_cmdstan()
@@ -19,7 +19,7 @@ remotes::install_github("SNARL1/mrmr")
 ```
 
 ## Load required packages
-```{r load_packages}
+```{r load-packages}
 library(dplyr)
 library(readr)
 library(tibble)
@@ -29,21 +29,21 @@ library(patchwork)
 ```
 
 ## Create required data frames
-```{r create_data_objects}
+```{r create-data-objects}
 captures <- read_csv(here::here("data", "clean", "70414_capture.csv"))
 surveys <- read_csv(here::here("data", "clean", "70414_survey.csv"))
 translocations <- read_csv(here::here("data", "clean", "70414_translocation.csv"))
 ```
 
 ## Check datasets
-```{r check_data}
+```{r check-data}
 data_70414 <- clean_data(captures = captures, surveys = surveys, translocations = translocations)
 ```
 
 ## Fit model
 Code assumes that there are 8 physical cores available. Update parallel_chains and threads_per_chain as necessary based on actual number of cores. 
 Add "adapt_delta = 0.99" or similar if divergent transitions occur. 
-```{r fit_model}
+```{r fit-model}
 model_70414 <- fit_model(
                     data = data_70414, 
                     chains = 4, 
@@ -55,16 +55,16 @@ model_70414 <- fit_model(
 
 ### Save/retrieve model object
 This step prevents having to rerun the model in the event of a crash during model visualizations in subsequent code blocks. Model files can be large, so this saves the file in a compressed format.
-```{r write_model}
+```{r write-model}
 write_rds(model_70414, here::here("out", "model", "70414_model.rds"), "xz", compression = 9L)
 ```
-```{r read_model}
-model_70414 <- read_rds(here::here("out", "model", "70414_model.rds"))
+```{r read-model}
+# model_70414 <- read_rds(here::here("out", "model", "70414_model.rds"))
 ```
 
 ### Diagnose potential non-convergence of the MCMC algorithm
 Inspect traceplots and parameter summary table. In table, are any R~hat~ values $\ge 1.01$?
-```{r model_diagnostics}
+```{r model-diagnostics}
 pars_to_plot <- c('alpha_lambda', 
                   'sigma_lambda', 
                   'beta_phi', 
@@ -78,14 +78,14 @@ model_70414$m_fit$summary(pars_to_plot)
 ## Visualize model results
 ### Default plots
 Note: Custom plots (produced in next code chunk: "plots_custom") are often easier to interpret than the default plots produced by this code chunk.
-```{r model_visualize}
-plot_model(model_70414, what = "abundance")
-plot_model(model_70414, what = "recruitment")
-plot_model(model_70414, what = "survival")
+```{r plots-default}
+# plot_model(model_70414, what = "abundance")
+# plot_model(model_70414, what = "recruitment")
+# plot_model(model_70414, what = "survival")
 ```
 
 ### Customize plots
-```{r plots_custom, fig.height=8, fig.width=7}
+```{r plots-custom, fig.height=8, fig.width=7}
 library(ggplot2)
 p1 <- plot_model(model_70414, what = "survival") 
 p1 <- p1 + ggtitle("A. Survival of translocated frogs") +
@@ -105,13 +105,13 @@ p1 / p2 / p3
 ```
 
 ### Save custom plots
-```{r save_plot}
+```{r save-plot}
 ggsave(here::here("out", "plots", "70414_mrmr_plots.png"), width = 6.5, height = 7.2)
 ```
 
 ## Create survival tables
 Only the cohort-level survival table is displayed (individual-level survival can be a large table).
-```{r survival_tables}
+```{r survival-tables}
 survival_cohort <- survival_table(model_70414, by_cohort = TRUE)
 survival_cohort
 
@@ -119,7 +119,8 @@ survival_ind <- survival_table(model_70414, by_individual = TRUE)
 ```
 
 ### Save survival tables
-```{r save_survival_tables}
+```{r save-survival-tables}
 survival_cohort %>% write_csv(here::here("out", "tables", "70414_survival_cohort.csv"))
 survival_ind %>% write_csv(here::here("out", "tables", "70414_survival_ind.csv"))
 ```
+
