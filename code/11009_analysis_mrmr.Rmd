@@ -1,0 +1,106 @@
+---
+title: "11009 - Analyze capture-mark-recapture data using *mrmr*"
+author: "Roland Knapp"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+This notebook analyzes capture-mark-recapture data using the *mrmr* package. The code creates the required survey, capture, and translocation data frames from saved CSV files (created by xxxxx_createdata_mrmr.Rmd), checks the datasets, fits the model, evaluates potential non-convergence of the MCMC algorithm, and visualizes model results. The code is written to be run on an ERI HPC server ("tong"). 
+
+## Install latest versions of cmdstanr, cmdstan, and mrmr packages
+Run only if updated versions were released since previous install
+```{r install-stan-mrmr-packages}
+# install cmdstanr and cmdstan
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+cmdstanr::install_cmdstan()
+
+# install mrmr
+remotes::install_github("SNARL1/mrmr")
+```
+
+## Load required packages
+```{r load-packages}
+library(dplyr)
+library(readr)
+library(tibble)
+library(cmdstanr)
+library(mrmr)
+library(patchwork)
+```
+
+## Create required data frames
+```{r create-data-objects}
+captures <- read_csv(here::here("data", "11009_capture.csv"))
+surveys <- read_csv(here::here("data", "11009_survey.csv"))
+```
+
+## Check datasets
+```{r check-data}
+data_11009 <- clean_data(captures = captures, surveys = surveys)
+```
+
+## Fit model
+Code assumes that there are 48 physical cores available (using ERI "tong" server). Update parallel_chains and threads_per_chain as necessary based on actual number of cores. 
+Add "control = list(adapt_delta = 0.99)" or similar if divergent transitions occur. Using the "tong" server, the model-fitting process required ~30 minutes. 
+```{r fit-model}
+model_11009 <- fit_model(
+                    data = data_11009, 
+                    chains = 4, 
+                    parallel_chains = 4, 
+                    cpp_options = list(stan_threads = TRUE),
+                    threads_per_chain = 12, 
+                    dir = "/home/snarg/roland/11009") # to prevent writing to a locked system directory 
+```
+* Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).
+
+### Save/retrieve model object
+This step prevents having to rerun the model in the event of a crash during model visualizations in subsequent code blocks. Model files can be large, so this saves the file in a compressed format.
+```{r write-model}
+write_rds(model_11009, here::here("out", "11009_model.rds"), "xz", compression = 9L)
+```
+```{r read-model}
+# model_11009 <- read_rds(here::here("out", "11009_model.rds"))
+```
+
+### Diagnose potential non-convergence of the MCMC algorithm
+Inspect traceplots and parameter summary table. In table, are any R~hat~ values $\ge 1.01$?
+```{r model-diagnostics}
+pars_to_plot <- c('alpha_lambda', 
+                  'sigma_lambda', 
+                  'beta_phi', 
+                  'sigma_phi', 
+                  'beta_detect')
+bayesplot::mcmc_trace(model_11009$m_fit$draws(pars_to_plot))
+
+model_11009$m_fit$summary(pars_to_plot)
+```
+* Trace plots for some parameters show more between-chain variation than is typical. Likely as a result, some R~hat~ values are between 1.01 and 1.022. Both results are likely due to the large number of frogs and relatively short time series/low number of frog recaptures. 
+
+## Visualize model results
+### Default plots
+Note: Custom plots (produced in next code chunk: "plots_custom") are often easier to interpret than the default plots produced by this code chunk.
+```{r plots-default}
+# plot_model(model_11009, what = "abundance")
+# plot_model(model_11009, what = "recruitment")
+# plot_model(model_11009, what = "survival")
+```
+
+### Customize plots
+```{r plots-custom, fig.height=8, fig.width=7}
+library(ggplot2)
+p1 <- plot_model(model_11009, what = "abundance") 
+p1 <- p1 + ggtitle("A. Population size") +
+    ylab("Number of adults") + 
+    expand_limits(y = 0)
+  
+p2 <- plot_model(model_11009, what = "recruitment")
+p2 <- p2 + ggtitle("B. Recruitment") +
+    ylab("Number of adults")
+  
+p1 / p2
+```
+
+### Save custom plots
+```{r save-plot}
+ggsave(here::here("out", "11009_mrmr_plots.png"), width = 6.5, height = 7.2)
+```
