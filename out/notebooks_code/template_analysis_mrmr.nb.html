@@ -1500,8 +1500,6 @@ window.initializeCodeFolding = function(show) {
   // select all R code blocks
   var rCodeBlocks = $('pre.r, pre.python, pre.bash, pre.sql, pre.cpp, pre.stan, pre.julia, pre.foldable');
   rCodeBlocks.each(function() {
-    // skip if the block has fold-none class
-    if ($(this).hasClass('fold-none')) return;
 
     // create a collapsable div to wrap the code in
     var div = $('<div class="collapse r-code-collapse"></div>');
@@ -1517,9 +1515,7 @@ window.initializeCodeFolding = function(show) {
     showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
-        .attr('data-bs-toggle', 'collapse') // BS5
         .attr('data-target', '#' + id)
-        .attr('data-bs-target', '#' + id)   // BS5
         .attr('aria-expanded', showThis)
         .attr('aria-controls', id);
 
@@ -1609,7 +1605,6 @@ if (window.hljs) {
 
 
 
-
 <style type="text/css">
 #rmd-source-code {
   display: none;
@@ -1640,9 +1635,6 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
-}
-details > summary > p:only-child {
-  display: inline;
 }
 pre code {
   padding: 0;
@@ -1752,7 +1744,7 @@ pre code {
 <div id="header">
 
 <div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
@@ -1782,177 +1774,103 @@ visualizes model results.</p>
 <p>Run only if updated versions were released since previous install</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBpbnN0YWxsIGNtZHN0YW5yIGFuZCBjbWRzdGFuXG5pbnN0YWxsLnBhY2thZ2VzKFxcY21kc3RhbnJcXCwgcmVwb3MgPSBjKFxcaHR0cHM6Ly9tYy1zdGFuLm9yZy9yLXBhY2thZ2VzL1xcLCBnZXRPcHRpb24oXFxyZXBvc1xcKSkpXG5jbWRzdGFucjo6aW5zdGFsbF9jbWRzdGFuKClcblxuIyBpbnN0YWxsIG1ybXJcbnJlbW90ZXM6Omluc3RhbGxfZ2l0aHViKFxcU05BUkwxL21ybXJcXClcbmBgYFxuYGBgIn0= -->
-<pre class="r"><code>```r
-# install cmdstanr and cmdstan
-install.packages(\cmdstanr\, repos = c(\https://mc-stan.org/r-packages/\, getOption(\repos\)))
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBpbnN0YWxsIGNtZHN0YW5yIGFuZCBjbWRzdGFuXG5pbnN0YWxsLnBhY2thZ2VzKFwiY21kc3RhbnJcIiwgcmVwb3MgPSBjKFwiaHR0cHM6Ly9tYy1zdGFuLm9yZy9yLXBhY2thZ2VzL1wiLCBnZXRPcHRpb24oXCJyZXBvc1wiKSkpXG5jbWRzdGFucjo6aW5zdGFsbF9jbWRzdGFuKClcblxuIyBpbnN0YWxsIG1ybXJcbnJlbW90ZXM6Omluc3RhbGxfZ2l0aHViKFwiU05BUkwxL21ybXJcIilcbmBgYCJ9 -->
+<pre class="r"><code># install cmdstanr and cmdstan
+install.packages(&quot;cmdstanr&quot;, repos = c(&quot;https://mc-stan.org/r-packages/&quot;, getOption(&quot;repos&quot;)))
 cmdstanr::install_cmdstan()
 
 # install mrmr
-remotes::install_github(\SNARL1/mrmr\)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-## Load required packages
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubGlicmFyeShkcGx5cilcbmxpYnJhcnkocmVhZHIpXG5saWJyYXJ5KHRpYmJsZSlcbmxpYnJhcnkoY21kc3RhbnIpXG5saWJyYXJ5KG1ybXIpXG5saWJyYXJ5KHBhdGNod29yaylcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-library(dplyr)
+remotes::install_github(&quot;SNARL1/mrmr&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="load-required-packages" class="section level2">
+<h2>Load required packages</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShkcGx5cilcbmxpYnJhcnkocmVhZHIpXG5saWJyYXJ5KHRpYmJsZSlcbmxpYnJhcnkoY21kc3RhbnIpXG5saWJyYXJ5KG1ybXIpXG5saWJyYXJ5KHBhdGNod29yaylcbmBgYCJ9 -->
+<pre class="r"><code>library(dplyr)
 library(readr)
 library(tibble)
 library(cmdstanr)
 library(mrmr)
 library(patchwork)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-## Create required data frames
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuY2FwdHVyZXMgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZShcXGRhdGFcXCwgXFxjbGVhblxcLCBcXDcwNDE0X2NhcHR1cmUuY3N2XFwpKVxuc3VydmV5cyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKFxcZGF0YVxcLCBcXGNsZWFuXFwsIFxcNzA0MTRfc3VydmV5LmNzdlxcKSlcbnRyYW5zbG9jYXRpb25zIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXFxkYXRhXFwsIFxcY2xlYW5cXCwgXFw3MDQxNF90cmFuc2xvY2F0aW9uLmNzdlxcKSlcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-captures &lt;- read_csv(here::here(\data\, \clean\, \70414_capture.csv\))
-surveys &lt;- read_csv(here::here(\data\, \clean\, \70414_survey.csv\))
-translocations &lt;- read_csv(here::here(\data\, \clean\, \70414_translocation.csv\))</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-## Check datasets
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZGF0YV83MDQxNCA8LSBjbGVhbl9kYXRhKGNhcHR1cmVzID0gY2FwdHVyZXMsIHN1cnZleXMgPSBzdXJ2ZXlzLCB0cmFuc2xvY2F0aW9ucyA9IHRyYW5zbG9jYXRpb25zKVxuYGBgXG5gYGAifQ== --&gt;
-
-```r
-```r
-data_70414 &lt;- clean_data(captures = captures, surveys = surveys, translocations = translocations)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-## Fit model
-Code assumes that there are 8 physical cores available. Update parallel_chains and threads_per_chain as necessary based on actual number of cores. 
-Add &quot;adapt_delta = 0.99&quot; or similar if divergent transitions occur. 
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubW9kZWxfNzA0MTQgPC0gZml0X21vZGVsKFxuICAgICAgICAgICAgICAgICAgICBkYXRhID0gZGF0YV83MDQxNCwgXG4gICAgICAgICAgICAgICAgICAgIGNoYWlucyA9IDQsIFxuICAgICAgICAgICAgICAgICAgICBwYXJhbGxlbF9jaGFpbnMgPSA0LCBcbiAgICAgICAgICAgICAgICAgICAgY3BwX29wdGlvbnMgPSBsaXN0KHN0YW5fdGhyZWFkcyA9IFRSVUUpLFxuICAgICAgICAgICAgICAgICAgICB0aHJlYWRzX3Blcl9jaGFpbiA9IDIpIFxuYGBgXG5gYGAifQ== --&gt;
-
-```r
-```r
-model_70414 &lt;- fit_model(
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="create-required-data-frames" class="section level2">
+<h2>Create required data frames</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2FwdHVyZXMgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZShcImRhdGFcIiwgXCJjbGVhblwiLCBcIjcwNDE0X2NhcHR1cmUuY3N2XCIpKVxuc3VydmV5cyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKFwiZGF0YVwiLCBcImNsZWFuXCIsIFwiNzA0MTRfc3VydmV5LmNzdlwiKSlcbnRyYW5zbG9jYXRpb25zIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhXCIsIFwiY2xlYW5cIiwgXCI3MDQxNF90cmFuc2xvY2F0aW9uLmNzdlwiKSlcbmBgYCJ9 -->
+<pre class="r"><code>captures &lt;- read_csv(here::here(&quot;data&quot;, &quot;clean&quot;, &quot;70414_capture.csv&quot;))
+surveys &lt;- read_csv(here::here(&quot;data&quot;, &quot;clean&quot;, &quot;70414_survey.csv&quot;))
+translocations &lt;- read_csv(here::here(&quot;data&quot;, &quot;clean&quot;, &quot;70414_translocation.csv&quot;))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="check-datasets" class="section level2">
+<h2>Check datasets</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YV83MDQxNCA8LSBjbGVhbl9kYXRhKGNhcHR1cmVzID0gY2FwdHVyZXMsIHN1cnZleXMgPSBzdXJ2ZXlzLCB0cmFuc2xvY2F0aW9ucyA9IHRyYW5zbG9jYXRpb25zKVxuYGBgIn0= -->
+<pre class="r"><code>data_70414 &lt;- clean_data(captures = captures, surveys = surveys, translocations = translocations)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="fit-model" class="section level2">
+<h2>Fit model</h2>
+<p>Code assumes that there are 8 physical cores available. Update
+parallel_chains and threads_per_chain as necessary based on actual
+number of cores. Add “control = list(adapt_delta = 0.99)” or similar if
+divergent transitions occur.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kZWxfNzA0MTQgPC0gZml0X21vZGVsKFxuICAgICAgICAgICAgICAgICAgICBkYXRhID0gZGF0YV83MDQxNCwgXG4gICAgICAgICAgICAgICAgICAgIGNoYWlucyA9IDQsIFxuICAgICAgICAgICAgICAgICAgICBwYXJhbGxlbF9jaGFpbnMgPSA0LCBcbiAgICAgICAgICAgICAgICAgICAgY3BwX29wdGlvbnMgPSBsaXN0KHN0YW5fdGhyZWFkcyA9IFRSVUUpLFxuICAgICAgICAgICAgICAgICAgICB0aHJlYWRzX3Blcl9jaGFpbiA9IDIpIFxuYGBgIn0= -->
+<pre class="r"><code>model_70414 &lt;- fit_model(
                     data = data_70414, 
                     chains = 4, 
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
                     threads_per_chain = 2) </code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-* Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).
-
-### Save/retrieve model object
-This step prevents having to rerun the model in the event of a crash during model visualizations in subsequent code blocks. Model files can be large, so this saves the file in a compressed format.
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxud3JpdGVfcmRzKG1vZGVsXzcwNDE0LCBoZXJlOjpoZXJlKFxcb3V0XFwsIFxcbW9kZWxcXCwgXFw3MDQxNF9tb2RlbC5yZHNcXCksIFxceHpcXCwgY29tcHJlc3Npb24gPSA5TClcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-write_rds(model_70414, here::here(\out\, \model\, \70414_model.rds\), \xz\, compression = 9L)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBtb2RlbF83MDQxNCA8LSByZWFkX3JkcyhoZXJlOjpoZXJlKFxcb3V0XFwsIFxcbW9kZWxcXCwgXFw3MDQxNF9tb2RlbC5yZHNcXCkpXG5gYGBcbmBgYCJ9 --&gt;
-
-```r
-```r
-# model_70414 &lt;- read_rds(here::here(\out\, \model\, \70414_model.rds\))</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-### Diagnose potential non-convergence of the MCMC algorithm
-Inspect traceplots and parameter summary table. In table, are any R~hat~ values $\ge 1.01$?
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucGFyc190b19wbG90IDwtIGMoJ2FscGhhX2xhbWJkYScsIFxuICAgICAgICAgICAgICAgICAgJ3NpZ21hX2xhbWJkYScsIFxuICAgICAgICAgICAgICAgICAgJ2JldGFfcGhpJywgXG4gICAgICAgICAgICAgICAgICAnc2lnbWFfcGhpJywgXG4gICAgICAgICAgICAgICAgICAnYmV0YV9kZXRlY3QnKVxuYmF5ZXNwbG90OjptY21jX3RyYWNlKG1vZGVsXzcwNDE0JG1fZml0JGRyYXdzKHBhcnNfdG9fcGxvdCkpXG5cbm1vZGVsXzcwNDE0JG1fZml0JHN1bW1hcnkocGFyc190b19wbG90KVxuYGBgXG5gYGAifQ== --&gt;
-
-```r
-```r
-pars_to_plot &lt;- c(&#39;alpha_lambda&#39;, 
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ul>
+<li>Running model with default adapt_delta (0.8) resulted in zero
+divergent transition (0/4000).</li>
+</ul>
+<div id="saveretrieve-model-object" class="section level3">
+<h3>Save/retrieve model object</h3>
+<p>This step prevents having to rerun the model in the event of a crash
+during model visualizations in subsequent code blocks. Model files can
+be large, so this saves the file in a compressed format.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxud3JpdGVfcmRzKG1vZGVsXzcwNDE0LCBoZXJlOjpoZXJlKFwib3V0XCIsIFwibW9kZWxcIiwgXCI3MDQxNF9tb2RlbC5yZHNcIiksIFwieHpcIiwgY29tcHJlc3Npb24gPSA5TClcbmBgYCJ9 -->
+<pre class="r"><code>write_rds(model_70414, here::here(&quot;out&quot;, &quot;model&quot;, &quot;70414_model.rds&quot;), &quot;xz&quot;, compression = 9L)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBtb2RlbF83MDQxNCA8LSByZWFkX3JkcyhoZXJlOjpoZXJlKFwib3V0XCIsIFwibW9kZWxcIiwgXCI3MDQxNF9tb2RlbC5yZHNcIikpXG5gYGAifQ== -->
+<pre class="r"><code># model_70414 &lt;- read_rds(here::here(&quot;out&quot;, &quot;model&quot;, &quot;70414_model.rds&quot;))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="diagnose-potential-non-convergence-of-the-mcmc-algorithm" class="section level3">
+<h3>Diagnose potential non-convergence of the MCMC algorithm</h3>
+<p>Inspect traceplots and parameter summary table. In table, are any
+R<sub>hat</sub> values <span class="math inline">\(\ge
+1.01\)</span>?</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGFyc190b19wbG90IDwtIGMoJ2FscGhhX2xhbWJkYScsIFxuICAgICAgICAgICAgICAgICAgJ3NpZ21hX2xhbWJkYScsIFxuICAgICAgICAgICAgICAgICAgJ2JldGFfcGhpJywgXG4gICAgICAgICAgICAgICAgICAnc2lnbWFfcGhpJywgXG4gICAgICAgICAgICAgICAgICAnYmV0YV9kZXRlY3QnKVxuYmF5ZXNwbG90OjptY21jX3RyYWNlKG1vZGVsXzcwNDE0JG1fZml0JGRyYXdzKHBhcnNfdG9fcGxvdCkpXG5cbm1vZGVsXzcwNDE0JG1fZml0JHN1bW1hcnkocGFyc190b19wbG90KVxuYGBgIn0= -->
+<pre class="r"><code>pars_to_plot &lt;- c(&#39;alpha_lambda&#39;, 
                   &#39;sigma_lambda&#39;, 
                   &#39;beta_phi&#39;, 
                   &#39;sigma_phi&#39;, 
@@ -1960,148 +1878,93 @@ pars_to_plot &lt;- c(&#39;alpha_lambda&#39;,
 bayesplot::mcmc_trace(model_70414$m_fit$draws(pars_to_plot))
 
 model_70414$m_fit$summary(pars_to_plot)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-## Visualize model results
-### Default plots
-Note: Custom plots (produced in next code chunk: &quot;plots_custom&quot;) are often easier to interpret than the default plots produced by this code chunk.
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gXFxhYnVuZGFuY2VcXClcbiMgcGxvdF9tb2RlbChtb2RlbF83MDQxNCwgd2hhdCA9IFxccmVjcnVpdG1lbnRcXClcbiMgcGxvdF9tb2RlbChtb2RlbF83MDQxNCwgd2hhdCA9IFxcc3Vydml2YWxcXClcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-# plot_model(model_70414, what = \abundance\)
-# plot_model(model_70414, what = \recruitment\)
-# plot_model(model_70414, what = \survival\)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-### Customize plots
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubGlicmFyeShnZ3Bsb3QyKVxucDEgPC0gcGxvdF9tb2RlbChtb2RlbF83MDQxNCwgd2hhdCA9IFxcc3Vydml2YWxcXCkgXG5wMSA8LSBwMSArIGdndGl0bGUoXFxBLiBTdXJ2aXZhbCBvZiB0cmFuc2xvY2F0ZWQgZnJvZ3NcXCkgK1xuICAgIGV4cGFuZF9saW1pdHMoeSA9IDApICtcbiAgICB0aGVtZShsZWdlbmQucG9zaXRpb24gPSBcXG5vbmVcXClcbiAgXG5wMiA8LSBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gXFxhYnVuZGFuY2VcXCkgXG5wMiA8LSBwMiArIGdndGl0bGUoXFxCLiBQb3B1bGF0aW9uIHNpemVcXCkgK1xuICAgIHlsYWIoXFxOdW1iZXIgb2YgYWR1bHRzXFwpICsgXG4gICAgZXhwYW5kX2xpbWl0cyh5ID0gMClcbiAgXG5wMyA8LSBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gXFxyZWNydWl0bWVudFxcKVxucDMgPC0gcDMgKyBnZ3RpdGxlKFxcQy4gUmVjcnVpdG1lbnRcXCkgK1xuICAgIHlsYWIoXFxOdW1iZXIgb2YgYWR1bHRzXFwpXG4gIFxucDEgLyBwMiAvIHAzXG5gYGBcbmBgYCJ9 --&gt;
-
-```r
-```r
-library(ggplot2)
-p1 &lt;- plot_model(model_70414, what = \survival\) 
-p1 &lt;- p1 + ggtitle(\A. Survival of translocated frogs\) +
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="visualize-model-results" class="section level2">
+<h2>Visualize model results</h2>
+<div id="default-plots" class="section level3">
+<h3>Default plots</h3>
+<p>Note: Custom plots (produced in next code chunk: “plots_custom”) are
+often easier to interpret than the default plots produced by this code
+chunk.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gXCJhYnVuZGFuY2VcIilcbiMgcGxvdF9tb2RlbChtb2RlbF83MDQxNCwgd2hhdCA9IFwicmVjcnVpdG1lbnRcIilcbiMgcGxvdF9tb2RlbChtb2RlbF83MDQxNCwgd2hhdCA9IFwic3Vydml2YWxcIilcbmBgYCJ9 -->
+<pre class="r"><code># plot_model(model_70414, what = &quot;abundance&quot;)
+# plot_model(model_70414, what = &quot;recruitment&quot;)
+# plot_model(model_70414, what = &quot;survival&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="customize-plots" class="section level3">
+<h3>Customize plots</h3>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnZ3Bsb3QyKVxucDEgPC0gcGxvdF9tb2RlbChtb2RlbF83MDQxNCwgd2hhdCA9IFwic3Vydml2YWxcIikgXG5wMSA8LSBwMSArIGdndGl0bGUoXCJBLiBTdXJ2aXZhbCBvZiB0cmFuc2xvY2F0ZWQgZnJvZ3NcIikgK1xuICAgIGV4cGFuZF9saW1pdHMoeSA9IDApICtcbiAgICB0aGVtZShsZWdlbmQucG9zaXRpb24gPSBcIm5vbmVcIilcbiAgXG5wMiA8LSBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gXCJhYnVuZGFuY2VcIikgXG5wMiA8LSBwMiArIGdndGl0bGUoXCJCLiBQb3B1bGF0aW9uIHNpemVcIikgK1xuICAgIHlsYWIoXCJOdW1iZXIgb2YgYWR1bHRzXCIpICsgXG4gICAgZXhwYW5kX2xpbWl0cyh5ID0gMClcbiAgXG5wMyA8LSBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gXCJyZWNydWl0bWVudFwiKVxucDMgPC0gcDMgKyBnZ3RpdGxlKFwiQy4gUmVjcnVpdG1lbnRcIikgK1xuICAgIHlsYWIoXCJOdW1iZXIgb2YgYWR1bHRzXCIpXG4gIFxucDEgLyBwMiAvIHAzXG5gYGAifQ== -->
+<pre class="r"><code>library(ggplot2)
+p1 &lt;- plot_model(model_70414, what = &quot;survival&quot;) 
+p1 &lt;- p1 + ggtitle(&quot;A. Survival of translocated frogs&quot;) +
     expand_limits(y = 0) +
-    theme(legend.position = \none\)
+    theme(legend.position = &quot;none&quot;)
   
-p2 &lt;- plot_model(model_70414, what = \abundance\) 
-p2 &lt;- p2 + ggtitle(\B. Population size\) +
-    ylab(\Number of adults\) + 
+p2 &lt;- plot_model(model_70414, what = &quot;abundance&quot;) 
+p2 &lt;- p2 + ggtitle(&quot;B. Population size&quot;) +
+    ylab(&quot;Number of adults&quot;) + 
     expand_limits(y = 0)
   
-p3 &lt;- plot_model(model_70414, what = \recruitment\)
-p3 &lt;- p3 + ggtitle(\C. Recruitment\) +
-    ylab(\Number of adults\)
+p3 &lt;- plot_model(model_70414, what = &quot;recruitment&quot;)
+p3 &lt;- p3 + ggtitle(&quot;C. Recruitment&quot;) +
+    ylab(&quot;Number of adults&quot;)
   
 p1 / p2 / p3</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-### Save custom plots
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuZ2dzYXZlKGhlcmU6OmhlcmUoXFxvdXRcXCwgXFxwbG90c1xcLCBcXDcwNDE0X21ybXJfcGxvdHMucG5nXFwpLCB3aWR0aCA9IDYuNSwgaGVpZ2h0ID0gNy4yKVxuYGBgXG5gYGAifQ== --&gt;
-
-```r
-```r
-ggsave(here::here(\out\, \plots\, \70414_mrmr_plots.png\), width = 6.5, height = 7.2)</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-## Create survival tables
-Only the cohort-level survival table is displayed (individual-level survival can be a large table).
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc3Vydml2YWxfY29ob3J0IDwtIHN1cnZpdmFsX3RhYmxlKG1vZGVsXzcwNDE0LCBieV9jb2hvcnQgPSBUUlVFKVxuc3Vydml2YWxfY29ob3J0XG5cbnN1cnZpdmFsX2luZCA8LSBzdXJ2aXZhbF90YWJsZShtb2RlbF83MDQxNCwgYnlfaW5kaXZpZHVhbCA9IFRSVUUpIFxuYGBgXG5gYGAifQ== --&gt;
-
-```r
-```r
-survival_cohort &lt;- survival_table(model_70414, by_cohort = TRUE)
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="save-custom-plots" class="section level3">
+<h3>Save custom plots</h3>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2dzYXZlKGhlcmU6OmhlcmUoXCJvdXRcIiwgXCJwbG90c1wiLCBcIjcwNDE0X21ybXJfcGxvdHMucG5nXCIpLCB3aWR0aCA9IDYuNSwgaGVpZ2h0ID0gNy4yKVxuYGBgIn0= -->
+<pre class="r"><code>ggsave(here::here(&quot;out&quot;, &quot;plots&quot;, &quot;70414_mrmr_plots.png&quot;), width = 6.5, height = 7.2)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="create-survival-tables" class="section level2">
+<h2>Create survival tables</h2>
+<p>Only the cohort-level survival table is displayed (individual-level
+survival can be a large table).</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3Vydml2YWxfY29ob3J0IDwtIHN1cnZpdmFsX3RhYmxlKG1vZGVsXzcwNDE0LCBieV9jb2hvcnQgPSBUUlVFKVxuc3Vydml2YWxfY29ob3J0XG5cbnN1cnZpdmFsX2luZCA8LSBzdXJ2aXZhbF90YWJsZShtb2RlbF83MDQxNCwgYnlfaW5kaXZpZHVhbCA9IFRSVUUpIFxuYGBgIn0= -->
+<pre class="r"><code>survival_cohort &lt;- survival_table(model_70414, by_cohort = TRUE)
 survival_cohort
 
 survival_ind &lt;- survival_table(model_70414, by_individual = TRUE) </code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-### Save survival tables
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc3Vydml2YWxfY29ob3J0ICU+JSB3cml0ZV9jc3YoaGVyZTo6aGVyZShcXG91dFxcLCBcXHRhYmxlc1xcLCBcXDcwNDE0X3N1cnZpdmFsX2NvaG9ydC5jc3ZcXCkpXG5zdXJ2aXZhbF9pbmQgJT4lIHdyaXRlX2NzdihoZXJlOjpoZXJlKFxcb3V0XFwsIFxcdGFibGVzXFwsIFxcNzA0MTRfc3Vydml2YWxfaW5kLmNzdlxcKSlcbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-survival_cohort %&gt;% write_csv(here::here(\out\, \tables\, \70414_survival_cohort.csv\))
-survival_ind %&gt;% write_csv(here::here(\out\, \tables\, \70414_survival_ind.csv\))</code></pre>
-<p>```</p>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="save-survival-tables" class="section level3">
+<h3>Save survival tables</h3>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3Vydml2YWxfY29ob3J0ICU+JSB3cml0ZV9jc3YoaGVyZTo6aGVyZShcIm91dFwiLCBcInRhYmxlc1wiLCBcIjcwNDE0X3N1cnZpdmFsX2NvaG9ydC5jc3ZcIikpXG5zdXJ2aXZhbF9pbmQgJT4lIHdyaXRlX2NzdihoZXJlOjpoZXJlKFwib3V0XCIsIFwidGFibGVzXCIsIFwiNzA0MTRfc3Vydml2YWxfaW5kLmNzdlwiKSlcbmBgYCJ9 -->
+<pre class="r"><code>survival_cohort %&gt;% write_csv(here::here(&quot;out&quot;, &quot;tables&quot;, &quot;70414_survival_cohort.csv&quot;))
+survival_ind %&gt;% write_csv(here::here(&quot;out&quot;, &quot;tables&quot;, &quot;70414_survival_ind.csv&quot;))</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 </div>
+</div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiNzA0MTQgLSBBbmFseXplIGNhcHR1cmUtbWFyay1yZWNhcHR1cmUgZGF0YSB1c2luZyAqbXJtcioiCmF1dGhvcjogIlJvbGFuZCBLbmFwcCIKb3V0cHV0OiBodG1sX25vdGVib29rCmVkaXRvcl9vcHRpb25zOiAKICBjaHVua19vdXRwdXRfdHlwZTogaW5saW5lCi0tLQpUaGlzIG5vdGVib29rIGFuYWx5emVzIGNhcHR1cmUtbWFyay1yZWNhcHR1cmUgZGF0YSB1c2luZyB0aGUgKm1ybXIqIHBhY2thZ2UuIFRoZSBjb2RlIGNyZWF0ZXMgdGhlIHJlcXVpcmVkIHN1cnZleSwgY2FwdHVyZSwgYW5kIHRyYW5zbG9jYXRpb24gZGF0YSBmcmFtZXMgZnJvbSBzYXZlZCBDU1YgZmlsZXMgKGNyZWF0ZWQgYnkgeHh4eHhfY3JlYXRlZGF0YV9tcm1yLlJtZCksIGNoZWNrcyB0aGUgZGF0YXNldHMsIGZpdHMgdGhlIG1vZGVsLCBldmFsdWF0ZXMgcG90ZW50aWFsIG5vbi1jb252ZXJnZW5jZSBvZiB0aGUgTUNNQyBhbGdvcml0aG0sIGFuZCB2aXN1YWxpemVzIG1vZGVsIHJlc3VsdHMuIAoKIyMgSW5zdGFsbCBsYXRlc3QgdmVyc2lvbnMgb2YgY21kc3RhbnIsIGNtZHN0YW4sIGFuZCBtcm1yIHBhY2thZ2VzClJ1biBvbmx5IGlmIHVwZGF0ZWQgdmVyc2lvbnMgd2VyZSByZWxlYXNlZCBzaW5jZSBwcmV2aW91cyBpbnN0YWxsCmBgYHtyIGluc3RhbGwtc3Rhbi1tcm1yLXBhY2thZ2VzfQojIGluc3RhbGwgY21kc3RhbnIgYW5kIGNtZHN0YW4KaW5zdGFsbC5wYWNrYWdlcygiY21kc3RhbnIiLCByZXBvcyA9IGMoImh0dHBzOi8vbWMtc3Rhbi5vcmcvci1wYWNrYWdlcy8iLCBnZXRPcHRpb24oInJlcG9zIikpKQpjbWRzdGFucjo6aW5zdGFsbF9jbWRzdGFuKCkKCiMgaW5zdGFsbCBtcm1yCnJlbW90ZXM6Omluc3RhbGxfZ2l0aHViKCJTTkFSTDEvbXJtciIpCmBgYAoKIyMgTG9hZCByZXF1aXJlZCBwYWNrYWdlcwpgYGB7ciBsb2FkLXBhY2thZ2VzfQpsaWJyYXJ5KGRwbHlyKQpsaWJyYXJ5KHJlYWRyKQpsaWJyYXJ5KHRpYmJsZSkKbGlicmFyeShjbWRzdGFucikKbGlicmFyeShtcm1yKQpsaWJyYXJ5KHBhdGNod29yaykKYGBgCgojIyBDcmVhdGUgcmVxdWlyZWQgZGF0YSBmcmFtZXMKYGBge3IgY3JlYXRlLWRhdGEtb2JqZWN0c30KY2FwdHVyZXMgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZSgiZGF0YSIsICJjbGVhbiIsICI3MDQxNF9jYXB0dXJlLmNzdiIpKQpzdXJ2ZXlzIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGEiLCAiY2xlYW4iLCAiNzA0MTRfc3VydmV5LmNzdiIpKQp0cmFuc2xvY2F0aW9ucyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKCJkYXRhIiwgImNsZWFuIiwgIjcwNDE0X3RyYW5zbG9jYXRpb24uY3N2IikpCmBgYAoKIyMgQ2hlY2sgZGF0YXNldHMKYGBge3IgY2hlY2stZGF0YX0KZGF0YV83MDQxNCA8LSBjbGVhbl9kYXRhKGNhcHR1cmVzID0gY2FwdHVyZXMsIHN1cnZleXMgPSBzdXJ2ZXlzLCB0cmFuc2xvY2F0aW9ucyA9IHRyYW5zbG9jYXRpb25zKQpgYGAKCiMjIEZpdCBtb2RlbApDb2RlIGFzc3VtZXMgdGhhdCB0aGVyZSBhcmUgOCBwaHlzaWNhbCBjb3JlcyBhdmFpbGFibGUuIFVwZGF0ZSBwYXJhbGxlbF9jaGFpbnMgYW5kIHRocmVhZHNfcGVyX2NoYWluIGFzIG5lY2Vzc2FyeSBiYXNlZCBvbiBhY3R1YWwgbnVtYmVyIG9mIGNvcmVzLiAKQWRkICJhZGFwdF9kZWx0YSA9IDAuOTkiIG9yIHNpbWlsYXIgaWYgZGl2ZXJnZW50IHRyYW5zaXRpb25zIG9jY3VyLiAKYGBge3IgZml0LW1vZGVsfQptb2RlbF83MDQxNCA8LSBmaXRfbW9kZWwoCiAgICAgICAgICAgICAgICAgICAgZGF0YSA9IGRhdGFfNzA0MTQsIAogICAgICAgICAgICAgICAgICAgIGNoYWlucyA9IDQsIAogICAgICAgICAgICAgICAgICAgIHBhcmFsbGVsX2NoYWlucyA9IDQsIAogICAgICAgICAgICAgICAgICAgIGNwcF9vcHRpb25zID0gbGlzdChzdGFuX3RocmVhZHMgPSBUUlVFKSwKICAgICAgICAgICAgICAgICAgICB0aHJlYWRzX3Blcl9jaGFpbiA9IDIpIApgYGAKKiBSdW5uaW5nIG1vZGVsIHdpdGggZGVmYXVsdCBhZGFwdF9kZWx0YSAoMC44KSByZXN1bHRlZCBpbiB6ZXJvIGRpdmVyZ2VudCB0cmFuc2l0aW9uICgwLzQwMDApLgoKIyMjIFNhdmUvcmV0cmlldmUgbW9kZWwgb2JqZWN0ClRoaXMgc3RlcCBwcmV2ZW50cyBoYXZpbmcgdG8gcmVydW4gdGhlIG1vZGVsIGluIHRoZSBldmVudCBvZiBhIGNyYXNoIGR1cmluZyBtb2RlbCB2aXN1YWxpemF0aW9ucyBpbiBzdWJzZXF1ZW50IGNvZGUgYmxvY2tzLiBNb2RlbCBmaWxlcyBjYW4gYmUgbGFyZ2UsIHNvIHRoaXMgc2F2ZXMgdGhlIGZpbGUgaW4gYSBjb21wcmVzc2VkIGZvcm1hdC4KYGBge3Igd3JpdGUtbW9kZWx9CndyaXRlX3Jkcyhtb2RlbF83MDQxNCwgaGVyZTo6aGVyZSgib3V0IiwgIm1vZGVsIiwgIjcwNDE0X21vZGVsLnJkcyIpLCAieHoiLCBjb21wcmVzc2lvbiA9IDlMKQpgYGAKYGBge3IgcmVhZC1tb2RlbH0KIyBtb2RlbF83MDQxNCA8LSByZWFkX3JkcyhoZXJlOjpoZXJlKCJvdXQiLCAibW9kZWwiLCAiNzA0MTRfbW9kZWwucmRzIikpCmBgYAoKIyMjIERpYWdub3NlIHBvdGVudGlhbCBub24tY29udmVyZ2VuY2Ugb2YgdGhlIE1DTUMgYWxnb3JpdGhtCkluc3BlY3QgdHJhY2VwbG90cyBhbmQgcGFyYW1ldGVyIHN1bW1hcnkgdGFibGUuIEluIHRhYmxlLCBhcmUgYW55IFJ+aGF0fiB2YWx1ZXMgJFxnZSAxLjAxJD8KYGBge3IgbW9kZWwtZGlhZ25vc3RpY3N9CnBhcnNfdG9fcGxvdCA8LSBjKCdhbHBoYV9sYW1iZGEnLCAKICAgICAgICAgICAgICAgICAgJ3NpZ21hX2xhbWJkYScsIAogICAgICAgICAgICAgICAgICAnYmV0YV9waGknLCAKICAgICAgICAgICAgICAgICAgJ3NpZ21hX3BoaScsIAogICAgICAgICAgICAgICAgICAnYmV0YV9kZXRlY3QnKQpiYXllc3Bsb3Q6Om1jbWNfdHJhY2UobW9kZWxfNzA0MTQkbV9maXQkZHJhd3MocGFyc190b19wbG90KSkKCm1vZGVsXzcwNDE0JG1fZml0JHN1bW1hcnkocGFyc190b19wbG90KQpgYGAKCiMjIFZpc3VhbGl6ZSBtb2RlbCByZXN1bHRzCiMjIyBEZWZhdWx0IHBsb3RzCk5vdGU6IEN1c3RvbSBwbG90cyAocHJvZHVjZWQgaW4gbmV4dCBjb2RlIGNodW5rOiAicGxvdHNfY3VzdG9tIikgYXJlIG9mdGVuIGVhc2llciB0byBpbnRlcnByZXQgdGhhbiB0aGUgZGVmYXVsdCBwbG90cyBwcm9kdWNlZCBieSB0aGlzIGNvZGUgY2h1bmsuCmBgYHtyIHBsb3RzLWRlZmF1bHR9CiMgcGxvdF9tb2RlbChtb2RlbF83MDQxNCwgd2hhdCA9ICJhYnVuZGFuY2UiKQojIHBsb3RfbW9kZWwobW9kZWxfNzA0MTQsIHdoYXQgPSAicmVjcnVpdG1lbnQiKQojIHBsb3RfbW9kZWwobW9kZWxfNzA0MTQsIHdoYXQgPSAic3Vydml2YWwiKQpgYGAKCiMjIyBDdXN0b21pemUgcGxvdHMKYGBge3IgcGxvdHMtY3VzdG9tLCBmaWcuaGVpZ2h0PTgsIGZpZy53aWR0aD03fQpsaWJyYXJ5KGdncGxvdDIpCnAxIDwtIHBsb3RfbW9kZWwobW9kZWxfNzA0MTQsIHdoYXQgPSAic3Vydml2YWwiKSAKcDEgPC0gcDEgKyBnZ3RpdGxlKCJBLiBTdXJ2aXZhbCBvZiB0cmFuc2xvY2F0ZWQgZnJvZ3MiKSArCiAgICBleHBhbmRfbGltaXRzKHkgPSAwKSArCiAgICB0aGVtZShsZWdlbmQucG9zaXRpb24gPSAibm9uZSIpCiAgCnAyIDwtIHBsb3RfbW9kZWwobW9kZWxfNzA0MTQsIHdoYXQgPSAiYWJ1bmRhbmNlIikgCnAyIDwtIHAyICsgZ2d0aXRsZSgiQi4gUG9wdWxhdGlvbiBzaXplIikgKwogICAgeWxhYigiTnVtYmVyIG9mIGFkdWx0cyIpICsgCiAgICBleHBhbmRfbGltaXRzKHkgPSAwKQogIApwMyA8LSBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gInJlY3J1aXRtZW50IikKcDMgPC0gcDMgKyBnZ3RpdGxlKCJDLiBSZWNydWl0bWVudCIpICsKICAgIHlsYWIoIk51bWJlciBvZiBhZHVsdHMiKQogIApwMSAvIHAyIC8gcDMKYGBgCgojIyMgU2F2ZSBjdXN0b20gcGxvdHMKYGBge3Igc2F2ZS1wbG90fQpnZ3NhdmUoaGVyZTo6aGVyZSgib3V0IiwgInBsb3RzIiwgIjcwNDE0X21ybXJfcGxvdHMucG5nIiksIHdpZHRoID0gNi41LCBoZWlnaHQgPSA3LjIpCmBgYAoKIyMgQ3JlYXRlIHN1cnZpdmFsIHRhYmxlcwpPbmx5IHRoZSBjb2hvcnQtbGV2ZWwgc3Vydml2YWwgdGFibGUgaXMgZGlzcGxheWVkIChpbmRpdmlkdWFsLWxldmVsIHN1cnZpdmFsIGNhbiBiZSBhIGxhcmdlIHRhYmxlKS4KYGBge3Igc3Vydml2YWwtdGFibGVzfQpzdXJ2aXZhbF9jb2hvcnQgPC0gc3Vydml2YWxfdGFibGUobW9kZWxfNzA0MTQsIGJ5X2NvaG9ydCA9IFRSVUUpCnN1cnZpdmFsX2NvaG9ydAoKc3Vydml2YWxfaW5kIDwtIHN1cnZpdmFsX3RhYmxlKG1vZGVsXzcwNDE0LCBieV9pbmRpdmlkdWFsID0gVFJVRSkgCmBgYAoKIyMjIFNhdmUgc3Vydml2YWwgdGFibGVzCmBgYHtyIHNhdmUtc3Vydml2YWwtdGFibGVzfQpzdXJ2aXZhbF9jb2hvcnQgJT4lIHdyaXRlX2NzdihoZXJlOjpoZXJlKCJvdXQiLCAidGFibGVzIiwgIjcwNDE0X3N1cnZpdmFsX2NvaG9ydC5jc3YiKSkKc3Vydml2YWxfaW5kICU+JSB3cml0ZV9jc3YoaGVyZTo6aGVyZSgib3V0IiwgInRhYmxlcyIsICI3MDQxNF9zdXJ2aXZhbF9pbmQuY3N2IikpCmBgYAoK</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiNzA0MTQgLSBBbmFseXplIGNhcHR1cmUtbWFyay1yZWNhcHR1cmUgZGF0YSB1c2luZyAqbXJtcioiCmF1dGhvcjogIlJvbGFuZCBLbmFwcCIKb3V0cHV0OiBodG1sX25vdGVib29rCmVkaXRvcl9vcHRpb25zOiAKICBjaHVua19vdXRwdXRfdHlwZTogaW5saW5lCi0tLQpUaGlzIG5vdGVib29rIGFuYWx5emVzIGNhcHR1cmUtbWFyay1yZWNhcHR1cmUgZGF0YSB1c2luZyB0aGUgKm1ybXIqIHBhY2thZ2UuIFRoZSBjb2RlIGNyZWF0ZXMgdGhlIHJlcXVpcmVkIHN1cnZleSwgY2FwdHVyZSwgYW5kIHRyYW5zbG9jYXRpb24gZGF0YSBmcmFtZXMgZnJvbSBzYXZlZCBDU1YgZmlsZXMgKGNyZWF0ZWQgYnkgeHh4eHhfY3JlYXRlZGF0YV9tcm1yLlJtZCksIGNoZWNrcyB0aGUgZGF0YXNldHMsIGZpdHMgdGhlIG1vZGVsLCBldmFsdWF0ZXMgcG90ZW50aWFsIG5vbi1jb252ZXJnZW5jZSBvZiB0aGUgTUNNQyBhbGdvcml0aG0sIGFuZCB2aXN1YWxpemVzIG1vZGVsIHJlc3VsdHMuIAoKIyMgSW5zdGFsbCBsYXRlc3QgdmVyc2lvbnMgb2YgY21kc3RhbnIsIGNtZHN0YW4sIGFuZCBtcm1yIHBhY2thZ2VzClJ1biBvbmx5IGlmIHVwZGF0ZWQgdmVyc2lvbnMgd2VyZSByZWxlYXNlZCBzaW5jZSBwcmV2aW91cyBpbnN0YWxsCmBgYHtyIGluc3RhbGwtc3Rhbi1tcm1yLXBhY2thZ2VzfQojIGluc3RhbGwgY21kc3RhbnIgYW5kIGNtZHN0YW4KaW5zdGFsbC5wYWNrYWdlcygiY21kc3RhbnIiLCByZXBvcyA9IGMoImh0dHBzOi8vbWMtc3Rhbi5vcmcvci1wYWNrYWdlcy8iLCBnZXRPcHRpb24oInJlcG9zIikpKQpjbWRzdGFucjo6aW5zdGFsbF9jbWRzdGFuKCkKCiMgaW5zdGFsbCBtcm1yCnJlbW90ZXM6Omluc3RhbGxfZ2l0aHViKCJTTkFSTDEvbXJtciIpCmBgYAoKIyMgTG9hZCByZXF1aXJlZCBwYWNrYWdlcwpgYGB7ciBsb2FkLXBhY2thZ2VzfQpsaWJyYXJ5KGRwbHlyKQpsaWJyYXJ5KHJlYWRyKQpsaWJyYXJ5KHRpYmJsZSkKbGlicmFyeShjbWRzdGFucikKbGlicmFyeShtcm1yKQpsaWJyYXJ5KHBhdGNod29yaykKYGBgCgojIyBDcmVhdGUgcmVxdWlyZWQgZGF0YSBmcmFtZXMKYGBge3IgY3JlYXRlLWRhdGEtb2JqZWN0c30KY2FwdHVyZXMgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZSgiZGF0YSIsICJjbGVhbiIsICI3MDQxNF9jYXB0dXJlLmNzdiIpKQpzdXJ2ZXlzIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGEiLCAiY2xlYW4iLCAiNzA0MTRfc3VydmV5LmNzdiIpKQp0cmFuc2xvY2F0aW9ucyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKCJkYXRhIiwgImNsZWFuIiwgIjcwNDE0X3RyYW5zbG9jYXRpb24uY3N2IikpCmBgYAoKIyMgQ2hlY2sgZGF0YXNldHMKYGBge3IgY2hlY2stZGF0YX0KZGF0YV83MDQxNCA8LSBjbGVhbl9kYXRhKGNhcHR1cmVzID0gY2FwdHVyZXMsIHN1cnZleXMgPSBzdXJ2ZXlzLCB0cmFuc2xvY2F0aW9ucyA9IHRyYW5zbG9jYXRpb25zKQpgYGAKCiMjIEZpdCBtb2RlbApDb2RlIGFzc3VtZXMgdGhhdCB0aGVyZSBhcmUgOCBwaHlzaWNhbCBjb3JlcyBhdmFpbGFibGUuIFVwZGF0ZSBwYXJhbGxlbF9jaGFpbnMgYW5kIHRocmVhZHNfcGVyX2NoYWluIGFzIG5lY2Vzc2FyeSBiYXNlZCBvbiBhY3R1YWwgbnVtYmVyIG9mIGNvcmVzLiAKQWRkICJjb250cm9sID0gbGlzdChhZGFwdF9kZWx0YSA9IDAuOTkpIiBvciBzaW1pbGFyIGlmIGRpdmVyZ2VudCB0cmFuc2l0aW9ucyBvY2N1ci4gCmBgYHtyIGZpdC1tb2RlbH0KbW9kZWxfNzA0MTQgPC0gZml0X21vZGVsKAogICAgICAgICAgICAgICAgICAgIGRhdGEgPSBkYXRhXzcwNDE0LCAKICAgICAgICAgICAgICAgICAgICBjaGFpbnMgPSA0LCAKICAgICAgICAgICAgICAgICAgICBwYXJhbGxlbF9jaGFpbnMgPSA0LCAKICAgICAgICAgICAgICAgICAgICBjcHBfb3B0aW9ucyA9IGxpc3Qoc3Rhbl90aHJlYWRzID0gVFJVRSksCiAgICAgICAgICAgICAgICAgICAgdGhyZWFkc19wZXJfY2hhaW4gPSAyKSAKYGBgCiogUnVubmluZyBtb2RlbCB3aXRoIGRlZmF1bHQgYWRhcHRfZGVsdGEgKDAuOCkgcmVzdWx0ZWQgaW4gemVybyBkaXZlcmdlbnQgdHJhbnNpdGlvbiAoMC80MDAwKS4KCiMjIyBTYXZlL3JldHJpZXZlIG1vZGVsIG9iamVjdApUaGlzIHN0ZXAgcHJldmVudHMgaGF2aW5nIHRvIHJlcnVuIHRoZSBtb2RlbCBpbiB0aGUgZXZlbnQgb2YgYSBjcmFzaCBkdXJpbmcgbW9kZWwgdmlzdWFsaXphdGlvbnMgaW4gc3Vic2VxdWVudCBjb2RlIGJsb2Nrcy4gTW9kZWwgZmlsZXMgY2FuIGJlIGxhcmdlLCBzbyB0aGlzIHNhdmVzIHRoZSBmaWxlIGluIGEgY29tcHJlc3NlZCBmb3JtYXQuCmBgYHtyIHdyaXRlLW1vZGVsfQp3cml0ZV9yZHMobW9kZWxfNzA0MTQsIGhlcmU6OmhlcmUoIm91dCIsICJtb2RlbCIsICI3MDQxNF9tb2RlbC5yZHMiKSwgInh6IiwgY29tcHJlc3Npb24gPSA5TCkKYGBgCmBgYHtyIHJlYWQtbW9kZWx9CiMgbW9kZWxfNzA0MTQgPC0gcmVhZF9yZHMoaGVyZTo6aGVyZSgib3V0IiwgIm1vZGVsIiwgIjcwNDE0X21vZGVsLnJkcyIpKQpgYGAKCiMjIyBEaWFnbm9zZSBwb3RlbnRpYWwgbm9uLWNvbnZlcmdlbmNlIG9mIHRoZSBNQ01DIGFsZ29yaXRobQpJbnNwZWN0IHRyYWNlcGxvdHMgYW5kIHBhcmFtZXRlciBzdW1tYXJ5IHRhYmxlLiBJbiB0YWJsZSwgYXJlIGFueSBSfmhhdH4gdmFsdWVzICRcZ2UgMS4wMSQ/CmBgYHtyIG1vZGVsLWRpYWdub3N0aWNzfQpwYXJzX3RvX3Bsb3QgPC0gYygnYWxwaGFfbGFtYmRhJywgCiAgICAgICAgICAgICAgICAgICdzaWdtYV9sYW1iZGEnLCAKICAgICAgICAgICAgICAgICAgJ2JldGFfcGhpJywgCiAgICAgICAgICAgICAgICAgICdzaWdtYV9waGknLCAKICAgICAgICAgICAgICAgICAgJ2JldGFfZGV0ZWN0JykKYmF5ZXNwbG90OjptY21jX3RyYWNlKG1vZGVsXzcwNDE0JG1fZml0JGRyYXdzKHBhcnNfdG9fcGxvdCkpCgptb2RlbF83MDQxNCRtX2ZpdCRzdW1tYXJ5KHBhcnNfdG9fcGxvdCkKYGBgCgojIyBWaXN1YWxpemUgbW9kZWwgcmVzdWx0cwojIyMgRGVmYXVsdCBwbG90cwpOb3RlOiBDdXN0b20gcGxvdHMgKHByb2R1Y2VkIGluIG5leHQgY29kZSBjaHVuazogInBsb3RzX2N1c3RvbSIpIGFyZSBvZnRlbiBlYXNpZXIgdG8gaW50ZXJwcmV0IHRoYW4gdGhlIGRlZmF1bHQgcGxvdHMgcHJvZHVjZWQgYnkgdGhpcyBjb2RlIGNodW5rLgpgYGB7ciBwbG90cy1kZWZhdWx0fQojIHBsb3RfbW9kZWwobW9kZWxfNzA0MTQsIHdoYXQgPSAiYWJ1bmRhbmNlIikKIyBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gInJlY3J1aXRtZW50IikKIyBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gInN1cnZpdmFsIikKYGBgCgojIyMgQ3VzdG9taXplIHBsb3RzCmBgYHtyIHBsb3RzLWN1c3RvbSwgZmlnLmhlaWdodD04LCBmaWcud2lkdGg9N30KbGlicmFyeShnZ3Bsb3QyKQpwMSA8LSBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gInN1cnZpdmFsIikgCnAxIDwtIHAxICsgZ2d0aXRsZSgiQS4gU3Vydml2YWwgb2YgdHJhbnNsb2NhdGVkIGZyb2dzIikgKwogICAgZXhwYW5kX2xpbWl0cyh5ID0gMCkgKwogICAgdGhlbWUobGVnZW5kLnBvc2l0aW9uID0gIm5vbmUiKQogIApwMiA8LSBwbG90X21vZGVsKG1vZGVsXzcwNDE0LCB3aGF0ID0gImFidW5kYW5jZSIpIApwMiA8LSBwMiArIGdndGl0bGUoIkIuIFBvcHVsYXRpb24gc2l6ZSIpICsKICAgIHlsYWIoIk51bWJlciBvZiBhZHVsdHMiKSArIAogICAgZXhwYW5kX2xpbWl0cyh5ID0gMCkKICAKcDMgPC0gcGxvdF9tb2RlbChtb2RlbF83MDQxNCwgd2hhdCA9ICJyZWNydWl0bWVudCIpCnAzIDwtIHAzICsgZ2d0aXRsZSgiQy4gUmVjcnVpdG1lbnQiKSArCiAgICB5bGFiKCJOdW1iZXIgb2YgYWR1bHRzIikKICAKcDEgLyBwMiAvIHAzCmBgYAoKIyMjIFNhdmUgY3VzdG9tIHBsb3RzCmBgYHtyIHNhdmUtcGxvdH0KZ2dzYXZlKGhlcmU6OmhlcmUoIm91dCIsICJwbG90cyIsICI3MDQxNF9tcm1yX3Bsb3RzLnBuZyIpLCB3aWR0aCA9IDYuNSwgaGVpZ2h0ID0gNy4yKQpgYGAKCiMjIENyZWF0ZSBzdXJ2aXZhbCB0YWJsZXMKT25seSB0aGUgY29ob3J0LWxldmVsIHN1cnZpdmFsIHRhYmxlIGlzIGRpc3BsYXllZCAoaW5kaXZpZHVhbC1sZXZlbCBzdXJ2aXZhbCBjYW4gYmUgYSBsYXJnZSB0YWJsZSkuCmBgYHtyIHN1cnZpdmFsLXRhYmxlc30Kc3Vydml2YWxfY29ob3J0IDwtIHN1cnZpdmFsX3RhYmxlKG1vZGVsXzcwNDE0LCBieV9jb2hvcnQgPSBUUlVFKQpzdXJ2aXZhbF9jb2hvcnQKCnN1cnZpdmFsX2luZCA8LSBzdXJ2aXZhbF90YWJsZShtb2RlbF83MDQxNCwgYnlfaW5kaXZpZHVhbCA9IFRSVUUpIApgYGAKCiMjIyBTYXZlIHN1cnZpdmFsIHRhYmxlcwpgYGB7ciBzYXZlLXN1cnZpdmFsLXRhYmxlc30Kc3Vydml2YWxfY29ob3J0ICU+JSB3cml0ZV9jc3YoaGVyZTo6aGVyZSgib3V0IiwgInRhYmxlcyIsICI3MDQxNF9zdXJ2aXZhbF9jb2hvcnQuY3N2IikpCnN1cnZpdmFsX2luZCAlPiUgd3JpdGVfY3N2KGhlcmU6OmhlcmUoIm91dCIsICJ0YWJsZXMiLCAiNzA0MTRfc3Vydml2YWxfaW5kLmNzdiIpKQpgYGAKCg==</div>
 
 
 
