@@ -71,6 +71,23 @@ This site includes two adjacent and relatively small, shallow ponds (72808, 7233
 
 ## Reintroduced populations
 
+### 50785
+
+This population was established via three reintroductions of adult *R. muscosa*, conducted in 2019, 2020, 2021. Frogs in all cohorts originated as tadpoles collected from 50783, and were raised at the Oakland Zoo. Frogs did not undergo "immune priming" prior to reintroduction due to staffing issues at the zoo. Reintroductions failed to establish a persistent population. 
+
+#### Survival
+* 1-year survival of the reintroduced 2019 cohort was relatively high (median = 0.45), but was 0 for the 2020 and 2021 cohorts.  This pattern corresponded with low Bd prevalence/load in 2019, but high prevalence/load thereafter. 
+
+#### Reproduction
+* Small numbers of tadpoles were observed in 2020 and 2021, but none were counted in 2022. 
+
+#### Recruitment
+* No recruitment of new frogs into the adult population occurred through 2022. 
+
+#### Population size
+* Frogs from the 2019 cohort persisted through summer 2019 and early-summer 2020, but were largely gone by late-summer 2020. Frogs in the 2020 and 2021 cohorts declined to zero in the first summer. 
+
+![](../../out/plots/50785_mrmr_plots.png){width=75%}
 
 ## Translocated populations
 
