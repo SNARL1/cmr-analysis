@@ -59,7 +59,7 @@ This step prevents having to rerun the model in the event of a crash during mode
 write_rds(model_50785, here::here("out", "model", "50785_model.rds"), "xz", compression = 9L)
 ```
 ```{r read-model}
-# model_50785 <- read_rds(here::here("out", "model", "50785_model.rds"))
+#model_50785 <- read_rds(here::here("out", "model", "50785_model.rds"))
 ```
 
 ### Diagnose potential non-convergence of the MCMC algorithm
