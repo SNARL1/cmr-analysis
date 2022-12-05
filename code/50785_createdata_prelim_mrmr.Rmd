@@ -1,0 +1,530 @@
+---
+title: "50785 - Create datasets for analysis using *mrmr*"
+author: "Roland Knapp"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+This notebook creates the survey, capture, and translocation files for use in analyzing capture-mark-recapture data using the *mrmr* package.
+The code retrieves data from the PostgreSQL amphibians database, runs error checks, and creates the relevant files in *mrmr* format.
+The code is written in distinct chunks to allow review of results from one chunk before running the next.
+For example, review of the raw data files is necessary to identify potentially problematic records for review and possible removal from the data set.
+
+Users without credentials to access the database will not be able to create or use the raw data file that is central to this notebook.
+See cmr-analysis/README.md for details.
+
+Note for credentialed users: Data from the most recent field season may not yet be appended to tables in the amphibians database.
+If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying code chunks in "fulcrum_data_append.Rmd" into this notebook and executing all code chunks.
+
+## Load packages
+
+```{r load-packages}
+library(tidyverse)
+library(RPostgreSQL)
+library(lubridate)
+library(assertthat)
+# options(readr.show_col_types = FALSE)
+```
+
+```{r create_append_files}
+visit_50785 <- read_csv(here::here("data", "raw", "current_year", "survey_50785.csv")) %>% 
+  select(record_id, site_id, visit_date, visit_status, visit_comment) %>% 
+  rename(comment_visit = visit_comment)
+
+survey_50785 <- read_csv(here::here("data", "raw", "current_year", "survey_description_50785.csv")) %>% 
+  select(record_id, survey_type, survey_description, wind, sky, air_temp, duration, survey_quality, general_survey_comment) %>% 
+  filter(survey_type == "cmr") %>% 
+  rename(description = survey_description, comment_survey = general_survey_comment)
+
+amphibian_capture_50785 <- read_csv(here::here("data", "raw", "current_year", "survey_amphibian_capture_50785.csv")) %>% 
+  filter(method == "cmr") %>% 
+  rename(comment_capture = capture_comment) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
+  replace_na(list(species = "ramu", capture_life_stage = "adult")) %>% 
+  select(record_id, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_capture)
+
+relocate_50785 <- read_csv(here::here("data", "raw", "current_year", "relocate_50785.csv")) %>% 
+  filter(relocate_type == "reintroduction") %>% 
+  rename(comment_relocate = relocate_comments,
+         type = relocate_type) %>% 
+  select(record_id, release_location, type, release_date, comment_relocate)
+
+relocate_amphibians_50785 <- read_csv(here::here("data", "raw", "current_year", "relocate_amphibians_50785.csv")) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
+  rename(relocate_amphibians_comments = comments) %>% 
+  select(record_id, pit_tag_ref, tag_new, collection_stage, sex, length, weight, swab_id, relocate_amphibians_comments)
+
+survey_append_50785 <- visit_50785 %>% 
+  inner_join(survey_50785, by = c("record_id")) %>% 
+  select(-record_id)
+
+capture_append_50785 <- visit_50785 %>% 
+  inner_join(survey_50785, by = c("record_id")) %>% 
+  inner_join(amphibian_capture_50785, by = c("record_id")) %>% 
+  select(-record_id)
+
+translocation_append_50785 <- relocate_50785 %>% 
+  inner_join(relocate_amphibians_50785, by = c("record_id")) %>% 
+  rename(site_id = release_location, 
+         capture_life_stage = collection_stage) %>% 
+  select(-record_id)
+```
+```{r}
+rm(amphibian_capture_50785, relocate_50785, relocate_amphibians_50785, survey_50785, visit_50785)
+```
+
+## Create translocation dataset
+Not all sites have received frog translocations. Run or skip the following code chunks as necessary. 
+
+### Connect to PostgreSQL database. 
+
+See next chunk for alternative. Users without credentials can use CSV file created in code chunk "read_raw_translocation_data" below as a starting point. 
+```{r}
+con = dbConnect(dbDriver("PostgreSQL"),
+                host = Sys.getenv("host"), 
+                port = Sys.getenv("port"), 
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
+```
+
+### Connect to PostgreSQL database (use only when connecting via SSH)
+```{r}
+con = dbConnect(dbDriver("PostgreSQL"),
+                host = rstudioapi::askForPassword("host"), 
+                port = rstudioapi::askForPassword("port"), 
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
+```
+
+### Retrieve translocation data from database
+```{sql retrieve_translocation_data, connection=con, output.var = "translocation_50785"}
+select 
+  release_siteid1, 
+  release_date, 
+  type, 
+  pit_tag_ref, 
+  tag_new,
+  sex,
+  length,
+  weight,
+  swab_id,
+  relocate.comment as comment_relocate,
+  relocate_frog.comment as comment_relocate_frog,
+  relocate.id as relocate_id,
+  relocate_frog.id as relocate_frog_id
+from relocate
+inner join relocate_frog on relocate.id = relocate_id
+where release_siteid1 = 50785 and
+      type = 'reintroduction'
+```
+```{r}
+dbDisconnect(con)
+rm(con)
+```
+Review the translocation data subset for potential problems. 
+
+### Save/retrieve raw translocation data
+```{r save_raw_translocation_data, message=FALSE}
+translocation_50785 %>% write_csv(here::here("data", "raw", "50785_translocation_raw.csv"))
+```
+```{r read_raw_translocation_data, message=FALSE}
+translocation_50785 <- read_csv(here::here("data", "raw", "50785_translocation_raw.csv")) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref))
+```
+
+### Retain only relevant columns
+```{r translocation_relevant_columns}
+translocation_50785 <- translocation_50785 %>% 
+  rename(site_id = release_siteid1) %>% 
+  select(site_id, release_date, type, pit_tag_ref, tag_new, sex, length, weight, swab_id)
+```
+
+### Append current-year translocation records (if translocations are relevant)
+```{r append_currentyear_translocation_records}
+translocation_50785 <- translocation_append_50785 %>% 
+  filter(type == "reintroduction") %>% 
+#  mutate(across(c("length", "weight"), as.integer),
+#         swab_id = as.character(swab_id)) %>% 
+  select(site_id, release_date, type, pit_tag_ref, tag_new, sex, length, weight, swab_id) %>% 
+  bind_rows(translocation_50785)
+```
+
+### Translocation data checks
+Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved. Run lines of code one at a time to allow easy evaluation of messages and outputs. 
+```{r translocation_data_checks, message=FALSE}
+# Check for records where pit_tag_ref is NULL
+assert_that(noNA(translocation_50785$pit_tag_ref))
+
+# Check for records containing pit tags shorter than 15 characters
+assert_that(!any(nchar(translocation_50785$pit_tag_ref) != 15))
+
+# Check for records containing pit tags that end with ".1" (known to be potentially incorrect) 
+assert_that(!any(str_detect(translocation_50785$pit_tag_ref, "\\.1$")))
+
+# Check for records of subadult frogs
+translocation_50785 %>% drop_na(length) %>% filter(length < 40)
+
+# Check for duplicate pit tags on each date
+translocation_50785 %>% count(release_date, pit_tag_ref) %>% filter(n > 1)
+
+# Are release dates correct?
+translocation_50785 %>% distinct(release_date) %>% glimpse()
+```
+
+### Clean translocation data
+```{r clean_translocation_data}
+translocation_50785 <- translocation_50785 %>% 
+  filter(pit_tag_ref != "6039") %>% 
+  filter(!is.na(pit_tag_ref))
+```
+
+### Create final translocation dataset formatted for mrmr
+```{r final_translocation_data}
+translocation_50785_mrmr <- translocation_50785 %>% 
+  rename(pit_tag_id = pit_tag_ref) %>% 
+  arrange(release_date, pit_tag_id) %>% 
+  select(site_id, type, release_date, pit_tag_id)
+```
+
+### Save/retrieve cleaned translocation data
+```{r save_cleaned_translocation_data, message=FALSE}
+translocation_50785_mrmr %>% write_csv(here::here("data", "clean", "50785_translocation.csv"))
+```
+```{r read_cleaned_translocation_data, message=FALSE}
+translocation_50785 <- read_csv(here::here("data", "clean", "50785_translocation.csv")) %>% 
+  mutate(pit_tag_id = as.character(pit_tag_id))
+```
+
+## Create survey dataset
+
+### Connect to PostgreSQL database (see below for alternative)
+
+```{r db-connect2}
+con = dbConnect(dbDriver("PostgreSQL"),
+                host = rstudioapi::askForPassword("host"), 
+                port = rstudioapi::askForPassword("port"), 
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
+```
+
+### Connect to PostgreSQL database (use only when connecting via SSH)
+```{r db-connect2-alt}
+con = dbConnect(dbDriver("PostgreSQL"),
+                host = rstudioapi::askForPassword("host"), 
+                port = rstudioapi::askForPassword("port"), 
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
+```
+
+### Retrieve survey data from database
+
+If surveys at which no frogs were captured are classified as "ves", include in "where" statement (e.g., where site_id = 70619 and survey_type in ('cmr', 'visual'))
+
+```{sql retrieve-survey-data, connection=con, output.var = "survey_50785"}
+select 
+  site_id, 
+  visit_date, 
+  visit_status, 
+  survey_type, 
+  description, 
+  survey_quality,
+  wind,
+  sky,
+  air_temp,
+  duration,
+  visit.comment as comment_visit,
+  survey.comment as comment_survey
+from visit
+inner join survey on visit.id = visit_id
+where site_id in ( 50784, 50785, 50786, 50787, 50788,51751, 42595, 51752) and
+      survey_type = 'cmr'
+```
+
+```{r db-disconnect2}
+dbDisconnect(con)
+rm(con)
+```
+
+### Append current-year survey records
+```{r append_currentyear_survey_records}
+survey_50785 <- bind_rows(survey_50785, survey_append_50785) %>% 
+  arrange(visit_date, desc(site_id)) %>% 
+  select(site_id, visit_date, visit_status, survey_type, description, survey_quality, wind, sky, air_temp, duration, comment_visit, comment_survey)
+```
+
+### Save/retrieve raw survey data
+
+```{r save-raw-survey-data}
+survey_50785 %>% write_csv(here::here("data", "raw", "50785_survey_raw.csv"))
+```
+
+```{r read-raw-survey-data}
+#survey_50785 <- read_csv(here::here("data", "raw", "50785_survey_raw.csv"))
+```
+
+### Include only relevant site visits
+
+When multiple numbered sites exist in survey area, include only one survey for entire site on each survey date. 50785 is the primary site at this location and was surveyed during each secondary period (as indicated by lack of records produced by following code chunk).
+
+```{r check-survey-history}
+# Check if primary site was surveyed during each visit
+survey_50785 %>% 
+  add_count(visit_date) %>% 
+  filter(n == 1 & site_id != "50785")
+```
+
+```{r include-relevant-surveys}
+# When only cmr surveys exist in survey history
+survey_50785_mrmr <- survey_50785 %>% 
+  filter(site_id == 50785) %>%
+  rename(survey_date = visit_date) %>% 
+  arrange(survey_date)
+```
+
+### Add translocation dates as surveys
+To meet mrmr format requirement
+```{r add_translocation_surveys}
+survey_50785_mrmr <- translocation_50785_mrmr %>% 
+  distinct(site_id, release_date, type) %>% 
+  rename(survey_type = type, survey_date = release_date) %>% bind_rows(survey_50785_mrmr) %>% 
+  arrange(survey_date) 
+```
+Review records for potential problematic surveys, for example, based on comment fields and fields describing current conditions.
+
+### Survey data checks
+
+Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved.
+
+```{r survey-data-checks}
+# Check for duplicate survey dates
+survey_50785_mrmr %>% count(site_id, survey_date) %>% filter(n > 1)
+
+# Check for sites that were unsuitable for survey
+survey_50785_mrmr %>% filter(visit_status != "suitable")
+```
+
+### Clean survey data
+
+```{r clean-survey-data}
+# Drop duplicate surveys
+
+# survey_50785_mrmr <- survey_50785_mrmr %>% 
+#  distinct(survey_date, .keep_all = TRUE)
+```
+
+### Create primary and secondary period columns in mrmr format
+
+```{r create-period-columns}
+# For robust design dataset
+survey_50785_mrmr <- survey_50785_mrmr %>%
+  select(site_id, survey_date, survey_type) %>% 
+  mutate(primary_period = case_when(survey_date == "2019-07-16" ~ 1,
+                                    between(survey_date, ymd("2019-08-08"), ymd("2019-08-09")) ~ 2,
+                                    between(survey_date, ymd("2020-06-20"), ymd("2020-06-21")) ~ 3,
+                                    survey_date == "2020-07-16" ~ 4,
+                                    between(survey_date, ymd("2020-08-09"), ymd("2020-08-11")) ~ 5,
+                                    between(survey_date, ymd("2021-06-15"), ymd("2021-06-17")) ~ 6,
+                                    survey_date == "2021-06-18" ~ 7,
+                                    between(survey_date, ymd("2021-08-10"), ymd("2021-08-11")) ~ 8,
+                                    between(survey_date, ymd("2022-06-13"), ymd("2022-06-14")) ~ 9)) 
+                                    
+survey_50785_mrmr <- survey_50785_mrmr %>% 
+  arrange(primary_period, survey_date) %>% 
+  group_by(primary_period) %>% 
+  mutate(secondary_period = seq_len(n()),
+         secondary_period = replace(secondary_period, survey_type != "cmr", 0)) 
+
+# For single day visit dataset
+survey_50785_mrmr <- survey_50785_mrmr %>%
+  select(site_id, survey_date, survey_type) %>% 
+  mutate(primary_period = row_number()) %>% 
+  group_by(primary_period) %>% 
+  mutate(secondary_period = seq_len(n()),
+         secondary_period = replace(secondary_period, survey_type != "cmr", 0))
+```
+
+### Save cleaned survey file
+
+```{r save-cleaned-survey-data}
+survey_50785_mrmr %>% write_csv(here::here("data", "clean", "50785_survey.csv"))
+```
+
+```{r read-cleaned-survey-data}
+# survey_50785_mrmr <- read_csv(here::here("data", "clean", "50785_survey.csv"))
+```
+
+## Create capture dataset
+
+### Connect to PostgreSQL database.
+
+```{r db-connect3}
+con = dbConnect(dbDriver("PostgreSQL"),
+                host = Sys.getenv("host"), 
+                port = Sys.getenv("port"), 
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
+```
+
+### Connect to PostgreSQL database (use only when connecting via SSH)
+```{r db-connect3-alt}
+con = dbConnect(dbDriver("PostgreSQL"),
+                host = rstudioapi::askForPassword("host"), 
+                port = rstudioapi::askForPassword("port"), 
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
+```
+### Retrieve frog capture data from database
+
+```{sql retrieve-capture-data, connection=con, output.var = "capture_50785"}
+select 
+  site_id, 
+  visit_date, 
+  visit_status, 
+  survey_type, 
+  pit_tag_ref, 
+  tag_new, 
+  species, 
+  capture_life_stage, 
+  capture_animal_state, 
+  length, 
+  visit.comment as comment_visit,
+  survey.comment as comment_survey,
+  capture_survey.comment as comment_capture,
+  visit.id as visit_id,
+  survey.id as survey_id,
+  capture_survey.id as capture_id
+from visit
+inner join survey on visit.id = visit_id
+inner join capture_survey on survey.id = survey_id
+where site_id in (50784, 50785, 50786, 50787, 50788, 51751, 51752, 42595) and
+      survey_type = 'cmr'
+```
+
+```{r db-disconnect3}
+dbDisconnect(con)
+rm(con)
+```
+
+### Append current-year capture records (if capture records exist in current-year Fulcrum)
+```{r append_currentyear_capture_records}
+capture_50785 <- capture_append_50785 %>% 
+  select(site_id, visit_date, visit_status, survey_type, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_visit, comment_survey, comment_capture) %>% 
+  bind_rows(capture_50785)
+```
+
+### Save/retrieve raw capture data
+
+```{r save-raw-capture-data}
+capture_50785 %>% write_csv(here::here("data", "raw", "50785_capture_raw.csv"))
+```
+
+```{r read-raw-capture-data}
+# capture_50785 <- read_csv(here::here("data", "raw", "50785_capture_raw.csv")) %>% 
+#  mutate(pit_tag_ref = as.character(pit_tag_ref))
+```
+
+Review records for potential problematic captures, for example, based on comment fields and fields describing frog characteristics (including tag_new).
+
+### Retain only relevant columns
+
+```{r capture-relevant-columns}
+capture_50785 <- capture_50785 %>% 
+  select(-visit_id, -survey_id, -capture_id)
+```
+
+### Capture data checks
+
+Run checks before and after data cleaning)
+
+```{r capture-data-checks, message=FALSE}
+# Check for records where pit_tag_ref is NULL
+assert_that(noNA(capture_50785$pit_tag_ref))
+
+# Check for records containing pit tags shorter than 15 characters (or 9 for early sites)
+assert_that(!any(nchar(capture_50785$pit_tag_ref) != 15))
+
+# Check for records containing pit tags that end with ".1" (known to be potentially incorrect) 
+assert_that(!any(str_detect(capture_50785$pit_tag_ref, "\\.1$")))
+
+# Check for records where species != ramu
+capture_50785 %>% drop_na(species) %>% filter(species != "ramu")
+
+# Check for records were survey_type = swab
+assert_that(!any(capture_50785$survey_type == "swab"))
+
+# Check for records where capture_animal_state is NULL
+assert_that(noNA(capture_50785$capture_animal_state))
+
+# Check for records where capture_animal_state == "dead"
+assert_that(!any(capture_50785$capture_animal_state == "dead"))
+
+# Check for records of subadult frogs
+capture_50785 %>% drop_na(length) %>% filter(length < 40)
+
+# Check for sites that were unsuitable for survey
+assert_that(!any(capture_50785$visit_status != "suitable"))
+
+# Check for duplicate capture records on each date
+capture_50785 %>% count(visit_date, pit_tag_ref) %>% filter(n > 1)
+
+# Check for captures that lack associated surveys
+survey_50785_mrmr %>% 
+  select(survey_date, primary_period) %>% 
+  rename(visit_date = survey_date) %>% 
+  right_join(capture_50785, by = c("visit_date")) %>% 
+  filter(is.na(primary_period))
+
+# Simpler alternative
+setdiff(capture_50785$visit_date, survey_50785_mrmr$survey_date) %>% as.Date(origin = "1970-01-01")
+
+# Check for surveys that lack associated captures
+survey_50785_mrmr %>% 
+  filter(survey_type == "cmr") %>% 
+  select(survey_date, primary_period) %>% 
+  rename(visit_date = survey_date) %>% 
+  left_join(capture_50785, by = c("visit_date")) %>% 
+  filter(is.na(species))
+
+# Simpler alternative
+setdiff(survey_50785_mrmr$survey_date, capture_50785$visit_date) %>% as.Date(origin = "1970-01-01")
+```
+
+### Clean capture data
+
+```{r clean-capture-data}
+capture_50785 <- capture_50785 %>% 
+  filter(capture_animal_state != "dead")
+```
+
+### Create final capture dataset formatted for mrmr
+
+```{r final-capture-data}
+capture_50785_mrmr <- capture_50785 %>%
+  rename(survey_date = visit_date, pit_tag_id = pit_tag_ref) %>%
+  arrange(survey_date, pit_tag_id) %>%
+  select(site_id, survey_date, pit_tag_id)
+```
+
+### Save cleaned capture data
+
+```{r save-cleaned-capture-data}
+capture_50785_mrmr %>% write_csv(here::here("data", "clean", "50785_capture.csv"))
+```
+
+```{r read-cleaned-capture-data}
+# capture_50785_mrmr <- read_csv(here::here("data", "clean", "50785_capture.csv")) %>% 
+#    mutate(pit_tag_id = as.character(pit_tag_id))
+```
