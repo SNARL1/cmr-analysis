@@ -54,9 +54,27 @@ This site contains two ponds (11008, 11009) located within 50 m of each other. B
 
 ![](../../out/plots/50783_mrmr_plots.png){width=75%}
 
+### 54188
+
+This site is a relatively shallow marsh with some associated small ponds. To date, all *R. sierrae* observed were in the main marsh. 
+
+#### Reproduction
+
+Tadpoles are observed during every VES. 
+
+#### Recruitment
+
+Tagging began in 2021, so no reliable information about recruitment is available yet. 
+
+#### Population size
+
+Although only three CMR primary periods are available to date and the uncertainty interval around the estimate of population size is wide, the number of adult frogs at this site is substantially larger than expected (median ~ 120, range ~ 80-180). 
+
+![](../../out/plots/54188_mrmr_plots.png){width=75%}
+
 ### 72808
 
-This site includes two adjacent and relatively small, shallow ponds (72808, 72336) connected by a perennial stream.  that is exposed to large avalanches during severe winters. These events typically cause very high mortality of adults and resulting high variability in frog population size (~ 50-250). We anticipated collecting adult frogs from this population in 2017 for a translocation, but avalanche impacts during the previous winter produced high frog mortality and the resulting small population size precluded any frog collections. It is hoped that the population will rebound and be able to serve as a donor population in the future.  
+This site includes two adjacent and relatively small, shallow ponds (72808, 72336) connected by a perennial stream.  It is exposed to large avalanches during severe winters, and these events typically cause very high mortality of adults and resulting high variability in frog population size (~ 50-250). We anticipated collecting adult frogs from this population in 2017 for a translocation, but avalanche impacts during the previous winter produced high frog mortality and the resulting small population size precluded any frog collections. It is hoped that the population will rebound and be able to serve as a donor population in the future.  
 
 #### Reproduction
 * Tadpoles have been observed during every VES conducted since 2001. The upper pond (72808) typically contains a larger number of tadpoles (up to 400 during VES), with VES at the lower pond (72336) typically being < 50. However, the 2021 VES count at 72336 were unusually high (~ 150) and 3x higher than at 72808.  
