@@ -30,9 +30,9 @@ library(patchwork)
 
 ## Create required data frames
 ```{r create_data_objects}
-captures <- read_csv(here::here("data", "70550_capture.csv"))
-surveys <- read_csv(here::here("data", "70550_survey.csv"))
-translocations <- read_csv(here::here("data", "70550_translocation.csv"))
+captures <- read_csv(here::here("data", "clean", "70550_capture.csv"))
+surveys <- read_csv(here::here("data", "clean","70550_survey.csv"))
+translocations <- read_csv(here::here("data", "clean", "70550_translocation.csv"))
 ```
 
 ## Check datasets
@@ -49,8 +49,8 @@ model_70550 <- fit_model(
                     chains = 4, 
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
-                    threads_per_chain = 4,
-                    dir = "/home/snarg/roland/70550") 
+                    threads_per_chain = 4)
+#                    dir = "/home/snarg/roland/70550") # Needed when running analysis on ERI server
 ```
 * Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).
 
