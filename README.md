@@ -2,17 +2,15 @@
 
 # Capture-mark-recapture analyses associated with mountain yellow-legged frog recovery efforts
 
-## Authors of this repository
+## Author of this repository
 
 Roland A. Knapp (roland.knapp(at)ucsb.edu) [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--1954--2745-green.svg)](http://orcid.org/0000-0002-1954-2745)
-
-Thomas C. Smith (tcsmith(at)ucsb.edu [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0001--7908--438X-green.svg)](http://orcid.org/0000-0001-7908-438X)
 
 ## Overview of contents
 
 This repository is organized as a reproducible research compendium, and focuses on actions conducted to recover populations of the endangered [mountain yellow-legged frog](https://www.fws.gov/sites/default/files/documents/Mountain-Yellow-Legged-Frog-Conservation-Strategy.pdf).
 Specifically, it contains data from capture-mark-recapture (CMR) surveys conducted on translocated, reintroduced, and donor populations (e.g., [Joseph and Knapp 2018](https://doi.org/10.1002/ecs2.2499)), the code to analyze the survey data using [R](https://www.r-project.org/), and a notebook that summarizes the results-to-date for each population.
-Results from many of these analyses are included in a manuscript (in preparation) that describes the establishment dynamics of frog populations following translocations.
+Results from many of these analyses are included in a manuscript (submitted) that describes the establishment dynamics of frog populations following translocations.
 Throughout this repository, frog populations are referenced only by 5-digit unique site identifiers.
 No site names or x-y coordinates are provided to protect these sensitive populations to the maximum extent possible.
 
@@ -35,7 +33,7 @@ This is done to make these files available to users who may be unable to run the
 ### Hardware requirements
 
 Most of the `xxxxx_analysis_mrmr.Rmd` files can be run on a computer with 32 GB of RAM and at least four physical CPU cores.
-The exception is `70550_analysis_mrmr.Rmd` that, due to the large number of frogs included in the associated datasets, requires 256 GB of RAM.
+The exception is `70550_analysis_mrmr.Rmd` that, due to the large number of frog captures in the associated datasets, requires 256 GB of RAM.
 Using 16 cores and 256 GB of RAM, the run time for `70550_analysis_mrmr.Rmd` is approximately 6 hours.
 Run times for all other `xxxxx_analysis_mrmr.Rmd` files, using 8 cores and 32 GB of RAM, are typically 5-30 minutes.
 
