@@ -71,7 +71,7 @@ This will launch an RStudio server on port 8787.
 
 ## Notebook
 
-This notebook provides summaries of results from CMR analyses for each of the study populations [doc/](https://github.com/SNARL1/cmr-analysis/tree/main/doc#readme).
+This notebook provides summaries of results from CMR analyses for each of the study populations, and is available in the [doc/](https://github.com/SNARL1/cmr-analysis/tree/main/doc#readme) directory.
 Link is to a README file that describes how to view the notebook directly from GitHub.
 
 
