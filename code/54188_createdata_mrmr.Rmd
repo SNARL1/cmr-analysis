@@ -37,11 +37,12 @@ survey_54188 <- read_csv(here::here("data", "raw", "current_year", "survey_descr
   filter(survey_type == "cmr") %>% 
   rename(description = survey_description, comment_survey = general_survey_comment)
 
-amphibian_capture_54188 <- read_csv(here::here("data", "raw", "current_year", "survey_amphibian_capture_54188.csv")) %>% 
+amphibian_capture_54188 <- read_csv(here::here("data", "raw", "current_year", "survey_amphibian_capture_54188.csv"), col_types = cols(.default = "?", species="c", capture_life_stage = "c" ) ) %>% 
   filter(method == "cmr") %>% 
   rename(comment_capture = capture_comment) %>% 
   mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
-  replace_na(list(species = "ramu", capture_life_stage = "adult")) %>% 
+  replace_na(list(species = "ramu", 
+                  capture_life_stage = "adult")) %>% 
   select(record_id, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_capture)
 
 survey_append_54188 <- visit_54188 %>% 
@@ -217,7 +218,10 @@ survey_54188 <- survey_54188 %>%
   select(site_id, survey_date, survey_type) %>% 
   mutate(primary_period = case_when(between(survey_date, ymd("2021-06-28"), ymd("2021-06-29")) ~ 1,
                                     between(survey_date, ymd("2021-08-29"), ymd("2021-08-31")) ~ 2,
-                                    between(survey_date, ymd("2022-08-20"), ymd("2022-08-22")) ~ 3))
+                                    between(survey_date, ymd("2022-08-20"), ymd("2022-08-22")) ~ 3,
+                                    between(survey_date, ymd("2023-09-05"), ymd("2023-09-07")) ~ 4,
+                                    between(survey_date, ymd("2024-07-29"), ymd("2024-07-31")) ~ 5))
+
 
 survey_54188 <- survey_54188 %>% 
   arrange(primary_period, survey_date) %>% 
