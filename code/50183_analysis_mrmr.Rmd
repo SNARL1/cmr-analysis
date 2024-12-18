@@ -1,11 +1,11 @@
 ---
-title: "54188 - Analyze capture-mark-recapture data using *mrmr*"
-author: "Roland Knapp"
+title: "50183 - Marmot Lake - Analyze capture-mark-recapture data using *mrmr*"
+author: "Roland Knapp and Thomas Smith"
 output: html_notebook
 editor_options: 
   chunk_output_type: inline
 ---
-This notebook analyzes capture-mark-recapture data using the *mrmr* package. The code creates the required survey, capture, and translocation data frames from saved CSV files (created by 54188_createdata_mrmr.Rmd), checks the datasets, fits the model, evaluates potential non-convergence of the MCMC algorithm, and visualizes model results. 
+This notebook analyzes capture-mark-recapture data using the *mrmr* package. The code creates the required survey, capture, and translocation data frames from saved CSV files (created by 50183_createdata_mrmr.Rmd), checks the datasets, fits the model, evaluates potential non-convergence of the MCMC algorithm, and visualizes model results. 
 
 Before using the code in this file, replace all instances of "xxxxx" with the 5-digit site_id of interest. 
 
@@ -26,6 +26,8 @@ remotes::install_github("SNARL1/mrmr")
 
 ```{r load-packages}
 library(dplyr)
+library(tidyverse)
+library(reshape2)
 library(readr)
 library(tibble)
 library(cmdstanr)
@@ -38,9 +40,11 @@ library(patchwork)
 - Ignore "translocations" file if translocations/reintroductions are not relevant
 
 ```{r create-data-objects}
-captures <- read_csv(here::here("data", "clean", "54188_capture.csv"))
-surveys <- read_csv(here::here("data", "clean", "54188_survey.csv"))
-# translocations <- read_csv(here::here("data", "clean", "54188_translocation.csv"))
+captures <- read_csv(here::here("data", "clean", "50183_capture.csv")) %>% 
+                             mutate(pit_tag_id=as.character(pit_tag_id)) 
+surveys <- read_csv(here::here("data", "clean", "50183_survey.csv"))
+translocations <- read_csv(here::here("data", "clean", "50183_reintroduction.csv")) %>% 
+                             mutate(pit_tag_id=as.character(pit_tag_id)) 
 ```
 
 ## Check datasets
@@ -48,7 +52,7 @@ surveys <- read_csv(here::here("data", "clean", "54188_survey.csv"))
 - Remove "translocations" file if translocations/reintroductions are not relevant
 
 ```{r check-data}
-data_54188 <- clean_data(captures = captures, surveys = surveys)
+data_50183 <- clean_data(captures = captures, surveys = surveys, translocations = translocations)
 ```
 
 ## Fit model
@@ -57,8 +61,8 @@ data_54188 <- clean_data(captures = captures, surveys = surveys)
 - Add "adapt_delta = 0.99" or similar (after "treats_per_chain") if divergent transitions occur. 
 
 ```{r fit-model}
-model_54188 <- fit_model(
-                    data = data_54188, 
+model_50183 <- fit_model(
+                    data = data_50183, 
                     chains = 4, 
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
@@ -75,10 +79,10 @@ model_54188 <- fit_model(
 - Model files can be large, so this saves the file in a compressed format.  
 
 ```{r write-model}
-write_rds(model_54188, here::here("out", "model", "54188_model.rds"), "xz", compression = 9L)
+write_rds(model_50183, here::here("out", "model", "50183_model.rds"), "xz", compression = 9L)
 ```
 
-- To read model file, use "model_54188 <- read_rds(here::here("out", "model", "54188_model.rds"))"
+- To read model file, use "model_50183 <- read_rds(here::here("out", "model", "50183_model.rds"))"
 
 ### Diagnose potential non-convergence of the MCMC algorithm
 
@@ -90,9 +94,9 @@ pars_to_plot <- c('alpha_lambda',
                   'beta_phi', 
                   'sigma_phi', 
                   'beta_detect')
-bayesplot::mcmc_trace(model_54188$m_fit$draws(pars_to_plot))
+bayesplot::mcmc_trace(model_50183$m_fit$draws(pars_to_plot))
 
-model_54188$m_fit$summary(pars_to_plot)
+model_50183$m_fit$summary(pars_to_plot)
 ```
 
 ## Visualize model results
@@ -102,9 +106,9 @@ model_54188$m_fit$summary(pars_to_plot)
 - Custom plots (produced in next code chunk: "plots_custom") are often easier to interpret than the default plots produced by this code chunk.  
 
 ```{r plots-default}
-# plot_model(model_54188, what = "abundance")
-# plot_model(model_54188, what = "recruitment")
-# plot_model(model_54188, what = "survival")
+ plot_model(model_50183, what = "abundance")
+ # plot_model(model_50183, what = "recruitment")
+ plot_model(model_50183, what = "survival")
 ```
 
 ### Custom plots
@@ -113,22 +117,23 @@ model_54188$m_fit$summary(pars_to_plot)
 
 ```{r plots-custom, fig.height=8, fig.width=7}
 library(ggplot2)
-p2 <- plot_model(model_54188, what = "abundance") 
+library(patchwork)
+p2 <- plot_model(model_50183, what = "abundance") 
 p2 <- p2 + ggtitle("A. Population size") +
-    ylab("Number of adults") + 
-    expand_limits(y = 0)
+    ylab("Number of adults") # + 
+    # expand_limits(y = 0)
+p3 <- plot_model(model_50183, what = "survival")
+p3 <- p3 + ggtitle("B. Survival") +
+     ylab("Fraction Surviving") # + 
+    # expand_limits(y = 0)
   
-p3 <- plot_model(model_54188, what = "recruitment")
-p3 <- p3 + ggtitle("B. Recruitment") +
-    ylab("Number of adults")
-  
-p2 / p3
+p2/p3
 ```
 
 ### Save custom plots
 
 ```{r save-plot}
-ggsave(here::here("out", "plots", "54188_mrmr_plots.png"), width = 6.5, height = 7.2)
+ggsave(here::here("out", "plots", "50183_mrmr_plots.png"), width = 6.5, height = 7.2)
 ```
 
 ## Create survival tables
@@ -137,16 +142,16 @@ ggsave(here::here("out", "plots", "54188_mrmr_plots.png"), width = 6.5, height =
 - Only the cohort-level survival table is displayed because the individual-level survival table can be large.  
 
 ```{r survival-tables}
-survival_cohort <- survival_table(model_54188, by_cohort = TRUE)
+survival_cohort <- survival_table(model_50183, by_cohort = TRUE)
 survival_cohort
 
-survival_ind <- survival_table(model_54188, by_individual = TRUE) 
+survival_ind <- survival_table(model_50183, by_individual = TRUE) 
 ```
 
 ### Save survival tables
 
 ```{r save-survival-tables}
-survival_cohort %>% write_csv(here::here("out", "tables", "54188_survival_cohort.csv"))
-survival_ind %>% write_csv(here::here("out", "tables", "54188_survival_ind.csv"))
+survival_cohort %>% write_csv(here::here("out", "tables", "50183_survival_cohort.csv"))
+survival_ind %>% write_csv(here::here("out", "tables", "50183_survival_ind.csv"))
 ```
 
