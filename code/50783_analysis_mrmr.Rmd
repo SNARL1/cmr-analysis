@@ -12,6 +12,7 @@ Run only if updated versions were released since previous install
 ```{r install-stan-mrmr-packages}
 # install cmdstanr and cmdstan
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+
 cmdstanr::install_cmdstan()
 
 # install mrmr
@@ -30,8 +31,8 @@ library(patchwork)
 
 ## Create required data frames
 ```{r create-data-objects}
-captures <- read_csv(here::here("data", "50783_capture.csv"))
-surveys <- read_csv(here::here("data", "50783_survey.csv"))
+captures <- read_csv(here::here("data","clean", "50783_capture.csv"))
+surveys <- read_csv(here::here("data","clean", "50783_survey.csv"))
 ```
 
 ## Check datasets
@@ -49,7 +50,7 @@ model_50783 <- fit_model(
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
                     threads_per_chain = 12, 
-                    dir = "/home/snarg/roland/50783", # to prevent writing to a locked system directory 
+                    # dir = "/home/snarg/roland/50783", # to prevent writing to a locked system directory 
                     adapt_delta = 0.99)
 
 ```
@@ -61,7 +62,7 @@ This step prevents having to rerun the model in the event of a crash during mode
 write_rds(model_50783, here::here("out", "50783_model.rds"), "xz", compression = 9L)
 ```
 ```{r read-model}
-# model_50783 <- read_rds(here::here("out", "50783_model.rds"))
+model_50783 <- read_rds(here::here("out", "model", "50783_model.rds"))
 ```
 
 ### Diagnose potential non-convergence of the MCMC algorithm
