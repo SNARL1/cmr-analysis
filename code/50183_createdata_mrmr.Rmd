@@ -457,7 +457,7 @@ survey_50183 %>%
   rename(visit_date = survey_date) %>% 
   left_join(capture_50183, by = c("visit_date")) %>% 
   filter(is.na(species))
-# for Marmot, there were two CMR surveys both in 2023 that were known to have zero observed frogs.
+# for 50183, there were two CMR surveys both in 2023 that were known to have zero observed frogs.
 
 # Simpler alternative
 setdiff(survey_50183$survey_date, capture_50183$visit_date) %>% as.Date(origin = "1970-01-01") # this includes reintro survey visit dates, which have no captures
