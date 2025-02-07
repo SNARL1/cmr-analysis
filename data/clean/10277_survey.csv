@@ -1,0 +1,9 @@
+site_id,survey_date,survey_type,primary_period,secondary_period
+10277,2013-09-04,reintroduction,1,0
+10277,2013-09-12,cmr,2,1
+10277,2014-07-09,cmr,3,1
+10277,2014-08-13,cmr,4,1
+10277,2014-09-03,cmr,5,1
+10276,2015-07-03,cmr,6,1
+10276,2015-07-27,cmr,7,1
+10277,2016-08-14,cmr,8,1
