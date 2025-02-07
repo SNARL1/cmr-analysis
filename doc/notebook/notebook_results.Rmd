@@ -21,12 +21,11 @@ Unless otherwise noted, frogs in all populations are infected with the amphibian
 Unlike the severe effects caused by Bd following its initial arrival in these populations, usually decades ago, many of these populations are now co-existing with Bd.
 The reasons for this changed dynamic are under study, and appear to involve evolutionary changes in frogs that have made them less susceptible to chytridiomycosis, the disease caused by Bd.
 
-## Donor populations
+## Bd-naive populations
 
-"Donor" populations include populations from which frogs are collected for translocations and in which CMR-based estimates of survival guide decisions on how many frogs can be collected without impacting population viability. This category also includes populations that are not used as donor populations, but are particularly important because of unique characteristics such as remaining in a Bd-naive condition. Given the paucity of information about Bd-naive populations, CMR surveys could provide important insights into frog dynamics in the absence of Bd infection. 
+### 11008 & 11009
 
-### 11009
-Unlike nearly all other populations at which CMR surveys are being conducted, this population is Bd-naive. The objective of the surveys at this site is to describe the population dynamics of MYL frogs in the absence of Bd infection. This population was chosen for surveys because the small size of the habitat produced a relatively small population at which CMR would likely be feabible (unlike the populations in larger lakes, that often contain thousands of adult frogs). No translocations/reintroductions have been conducted to this site, so no estimates of frog survival are produced by the mrmr package. 
+The objective of the surveys at this site is to describe the population dynamics of MYL frogs in the absence of Bd infection. This population was chosen for surveys because the small size of the habitat produced a relatively small population at which CMR would likely be feabible (unlike the populations in larger lakes, that often contain thousands of adult frogs). No translocations/reintroductions have been conducted to this site, so no estimates of frog survival are produced by the mrmr package. 
 
 This site contains two ponds (11008, 11009) located within 50 m of each other. Both ponds have similar area and depth. However, throughout the summer the upper pond (11008) appears to drain via subsurface flow to the lower pond (11009). As a result, the surface elevation of 11008 typically drops by ~ 50 cm over the summer while the elevation of 11009 stays constant. That contributes to a relatively rocky and unvegetated shoreline at 11008 and one at 11009 that is dominated by sphagnum moss, often creating overhanging banks that are highly preferred habitat of MYL frogs. This habitat difference results in very different population structures at the two sites. 11008 typically contains a small adult population of ~ 20 large adult frogs, and 11009 typically contains a much larger population (~ 100-200 adults). Both ponds contain similar numbers of tadpoles (~ 500-1000). 
 
@@ -40,6 +39,10 @@ This site contains two ponds (11008, 11009) located within 50 m of each other. B
 * The estimated population size across both ponds is ~ 600 adults, and the population has been relatively stable since CMR surveys began in 2019.  
 
 ![](../../out/plots/11009_mrmr_plots.png){width=75%}
+
+## Donor populations
+
+"Donor" populations include populations from which frogs are collected for translocations and in which CMR-based estimates of survival guide decisions on how many frogs can be collected without impacting population viability. This category also includes populations that are not used as donor populations, but are particularly important because of unique characteristics such as remaining in a Bd-naive condition. Given the paucity of information about Bd-naive populations, CMR surveys could provide important insights into frog dynamics in the absence of Bd infection. 
 
 ### 50783
 
@@ -87,7 +90,17 @@ This site includes two adjacent and relatively small, shallow ponds (72808, 7233
 
 ![](../../out/plots/72808_mrmr_plots.png){width=75%}
 
-## Reintroduced populations
+## Reintroduced populations (wild & zoo-reared frogs from Bd+ recovering populations)
+
+
+
+### 20135 
+
+- To be added by Roland
+
+### 22008
+
+- To be added by Roland
 
 ### 50785
 
@@ -107,25 +120,6 @@ This population was established via three reintroductions of adult *R. muscosa*,
 
 ![](../../out/plots/50785_mrmr_plots.png){width=75%}
 
-## Translocated populations
-
-### 10486
-
-This population was established via translocation of 60 adults in 2016. This action was conducted by the National Park Service to create another population in a basin that contains several Bd-naive populations. The translocated frogs were not PIT tagged before release, and were monitored occasionally by NPS staff using VES. CMR surveys were initiated in 2020. The objective is to provide insights into the population dynamics of translocated frog populations in the absence of Bd infection, for comparison to dynamics of Bd-positive translocated populations. 
-
-#### Survival
-* Because translocated frogs were not PIT tagged, no survival estimates are possible.  
-
-#### Reproduction
-* Approximately 50-170 tadpoles were counted during VES in 2020 and 2021. There is very limited shallow-water basking habitat in this high elevation lake.  
-
-#### Recruitment
-* Judging by the relatively large size of most captured untagged frogs at this site (60-74 mm), the majority likely are the originally translocated individuals. However, 8 frogs were 46-55 mm and those are almost certainly new recruits. 
-
-#### Population size
-Estimated population size is ~ 35-40 adult frogs. In the absence of much recruitment yet to date, this suggests relatively high survival of the translocated frogs. 
-
-![](../../out/plots/10486_mrmr_plots.png){width=75%}
 
 ### 70134
 
@@ -139,6 +133,10 @@ Estimated population size is ~ 35-40 adult frogs. In the absence of much recruit
 -   No evidence of reproduction was ever seen.
 
 ![](../../out/plots/70134_mrmr_plots.png){width=75%}
+
+### 70327, 72989, 74281
+
+To be added. Bd-naive source population with one reintroduction of frogs from Bd+ recovering population. Files in mlrg/projects/cmr.
 
 ### 70370
 
@@ -393,4 +391,57 @@ Estimated population size is ~ 35-40 adult frogs. In the absence of much recruit
 -   Population seems likely to become firmly established in next few years.
 
 ![](../../out/plots/74976_mrmr_plots.png){width=75%}
+
+### 84218
+
+- To be added by Tom
+
+### 84235
+
+- To be added by Tom
+
+### 84313
+
+- To be added by Tom
+
+## Reintroduced populations: wild frogs translocated from Bd-naive population
+
+### 10486
+
+This population was established via translocation of 60 adults in 2016. This action was conducted by the National Park Service to create another population in a basin that contains several Bd-naive populations. The translocated frogs were not PIT tagged before release, and were monitored occasionally by NPS staff using VES. CMR surveys were initiated in 2020. The objective is to provide insights into the population dynamics of translocated frog populations in the absence of Bd infection, for comparison to dynamics of Bd-positive translocated populations. 
+
+#### Survival
+* Because translocated frogs were not PIT tagged, no survival estimates are possible.  
+
+#### Reproduction
+* Approximately 50-170 tadpoles were counted during VES in 2020 and 2021. There is very limited shallow-water basking habitat in this high elevation lake.  
+
+#### Recruitment
+* Judging by the relatively large size of most captured untagged frogs at this site (60-74 mm), the majority likely are the originally translocated individuals. However, 8 frogs were 46-55 mm and those are almost certainly new recruits. 
+
+#### Population size
+Estimated population size is ~ 35-40 adult frogs. In the absence of much recruitment yet to date, this suggests relatively high survival of the translocated frogs.
+
+![](../../out/plots/10486_mrmr_plots.png){width=75%}
+
+## Reintroduced populations: captive-reared frogs from Bd-naive population
+
+The following three reintroduced populations (10277, 10285, 10315) were part of an experiment designed to understand whether frogs from Bd-naive populations could be provided with increased Bd resistance by infecting them with Bd to stimulate an acquired immune response and then successfully reintroduced into Bd+ habitats. We collected adult frogs from a Bd-naive donor population (10477), exposed them to Bd in captivity in an effort to stimulate an immune response, cleared of them of Bd, and reintroduced into them lakes from which frogs had recently been extirpated following a Bd epizootic. Unfortunately, the Bd exposures (conducted at SNARL and again at UCSB), which were expected to result in rapidly increasing Bd loads on frogs, resulting only in low-level Bd loads that were likely too low to stimulate an acquired immune response. Without a means to produce the required higher Bd loads, frogs were cleared of infection and reintroduced into the three study lakes. 
+
+### 10277
+
+- To be added by Roland
+
+### 10285
+
+- To be added by Roland
+
+### 10315
+
+- To be added by Roland
+
+### 20196, 21078, 21079
+
+- Are these reintroductions worth adding or is subsequent survey data too sparse?
+
 
