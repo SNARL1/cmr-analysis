@@ -1,0 +1,164 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+Analysis of Ranger Station Pond CMR dataset - Tyndall area
+* use 'treatment' covariate in translocation file to evaluate survival of Bd-exposed and unexposed frogs
+
+Install mrmr package if current version is not available
+```{r}
+remotes::install_github("SNARL1/mrmr")
+```
+
+Load required packages
+```{r}
+library(dplyr)
+library(readr)
+library(tibble)
+library(rstan)
+library(mrmr)
+```
+
+Set working directory for Ranger Station Pond
+```{r}
+knitr::opts_knit$set(root.dir = '/media/rknapp/Data/Box Sync/SNARL shared folder/Projects/cmr_analysis/sites/tyndall/ranger_station')
+getwd()
+```
+
+Create required data frames
+```{r}
+captures <- "captures.rangerstapond.mrmr.csv" %>% read_csv
+translocations <- "translocations.rangerstapond.mrmr.csv" %>% read_csv
+surveys <- "surveys.rangerstapond.mrmr.csv" %>% read_csv
+```
+
+Read and clean the data
+```{r}
+data_rangerstapond <- clean_data(captures, surveys, translocations,
+                                survival_formula = ~ treatment,
+                                survival_fill_value = c(treatment = "unexposed"))
+```
+
+Fit model
+```{r}
+# use 'chains = 1, iter = 10' for initial model check
+# use 'chains = 3, iter = ~1000' for actual model run
+model_rangerstapond <- fit_model(data_rangerstapond, cores = parallel::detectCores())
+```
+
+To diagnose potential non-convergence of the MCMC algorithm, inspect traceplots, Rhat estimates (any >= 1.01?)
+```{r}
+traceplot(model_rangerstapond$m_fit, par = "Nsuper")
+
+pars_to_plot <- c('alpha_lambda', 
+                  'sigma_lambda', 
+                  'beta_phi', 
+                  'sigma_phi', 
+                  'beta_detect')
+traceplot(model_rangerstapond$m_fit, pars = pars_to_plot)
+
+print(model_rangerstapond$m_fit, pars = pars_to_plot)
+```
+
+Visualize results
+```{r}
+plot_model(model_rangerstapond, what = 'abundance')
+plot_model(model_rangerstapond, what = 'recruitment')
+plot_model(model_rangerstapond, what = 'survival')
+```
+
+Compare posterior estimates for survival between Bd-exposed and unexposed 
+individudals. 
+```{r}
+post <- rstan::extract(model_rangerstapond$m_fit)
+
+# Check that all translocation treatments match
+t1 <- data_rangerstapond$survival_covariate_df %>%
+  filter(pit_tag_id %in% translocations$pit_tag_id) %>%
+  arrange(pit_tag_id)
+t2 <- distinct(translocations, pit_tag_id, treatment) %>%
+  mutate(pit_tag_id = as.character(pit_tag_id)) %>%
+  arrange(pit_tag_id)
+stopifnot(all_equal(t1$treatment, t2$treatment))
+
+
+survival_df <- post$phi %>%
+  reshape2::melt(varnames = c("iter", "individual", "primary_period")) %>%
+  as_tibble %>%
+  mutate(pit_tag_id = data_rangerstapond$survival_covariate_df$pit_tag_id[individual]) %>%
+  left_join(data_rangerstapond$survival_covariate_df) %>%
+  distinct(iter, primary_period, value, treatment) %>%
+  left_join(data_rangerstapond$surveys %>% filter(secondary_period < 2))
+
+survival_df %>%
+  ggplot(aes(x = value, color = treatment)) + 
+  stat_density(geom = "line", position = position_dodge(width=0)) + 
+  facet_wrap(~ survey_date, scales = 'free_y') + 
+  xlab("Survival probability") + 
+  ylab("Posterior density") + 
+  scale_color_discrete("Treatment")
+
+paste("Posterior probability that treatment increased survival:", 
+      mean(post$beta_phi[, 2] < 0))
+```
+
+Plot cohort survival by treatment group, with 95% credible intervals and 
+lines/points on the posterior median.
+```{r}
+primary_period_dates <- model_rangerstapond$data$surveys %>%
+  group_by(.data$primary_period) %>%
+  summarize(date = min(.data$survey_date),
+            year = min(.data$year)) %>%
+  ungroup
+
+model_rangerstapond$post$s %>%
+  reshape2::melt(varnames = c('iter', 'i', 'primary_period')) %>%
+  as_tibble %>%
+  mutate(pit_tag_id = dimnames(model_rangerstapond$data$stan_d$Y)[[1]][.data$i]) %>%
+  filter(.data$pit_tag_id %in% as.character(model_rangerstapond$data$translocations$pit_tag_id)) %>%
+  left_join(distinct(model_rangerstapond$data$translocations,
+                     .data$pit_tag_id, .data$release_date)) %>%
+  left_join(model_rangerstapond$data$survival_covariate_df) %>%
+  group_by(.data$release_date, .data$primary_period, .data$iter, .data$treatment) %>%
+  summarize(fraction_alive = mean(.data$value == 2)) %>%
+  ungroup %>%
+  filter(.data$primary_period > 1) %>%
+  left_join(primary_period_dates) %>%
+  filter(.data$date >= .data$release_date) %>%
+  group_by(.data$release_date, .data$date, .data$treatment) %>%
+  summarize(lo = quantile(.data$fraction_alive, .025),
+            med = median(.data$fraction_alive),
+            hi = quantile(.data$fraction_alive, .975)) %>%
+  ungroup %>%
+  mutate(grp = paste(treatment, release_date), 
+         release_date = paste("Released on", release_date)) %>%
+  ggplot(aes(.data$date, .data$med,
+             color = tools::toTitleCase(.data$treatment),
+             fill = tools::toTitleCase(.data$treatment), 
+             group = .data$grp)) +
+  geom_ribbon(aes(ymin = .data$lo, ymax = .data$hi),
+              alpha = .4, color = NA) +
+  geom_line() +
+  geom_point() +
+  ylab('Fraction surviving') +
+  xlab('Date') +
+  scale_color_brewer('Treatment', palette = "Dark2") +
+  scale_fill_brewer('Treatment', palette = "Dark2") +
+  scale_x_date(date_breaks = "1 year") + 
+  facet_wrap(~release_date, ncol = 1)
+```
+
+
+Save model objects
+```{r}
+write_rds(model_rangerstapond, "model_rangerstapond_mrmr.rds")
+
+# Or compressed
+write_rds(model_rangerstapond, "model_rangerstapond_mrmr_compressed.rds", "xz", compression = 9L)
+```
+
+Read model objects back in
+```{r}
+model_rangerstapond <- read_rds("model_rangerstapond_mrmr_compressed.rds")
+```
+

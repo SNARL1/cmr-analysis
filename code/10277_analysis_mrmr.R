@@ -1,4 +1,4 @@
-# mrmr analysis of Upper dataset (South Fork Kings River)
+# mrmr analysis 10277 dataset # UPDATE CODE & RERUN
 
 # Load dependencies
 source('R/load-deps.R')

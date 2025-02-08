@@ -1,0 +1,342 @@
+  ---
+title: "An introduction to mrmr: Tyndall"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{intro-to-mrmr-tyndall}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>", 
+  fig.width = 7, 
+  fig.height = 3.5
+)
+```
+
+```{r setup}
+library(dplyr)
+library(readr)
+library(tibble)
+library(rstan)
+library(mrmr)
+```
+
+## Data specifications
+
+The first file specifies capture data:
+
+```{r show-capture-data}
+captures <- "../data/captures.tyndallpond.mrmr.csv" %>%
+  read_csv
+
+glimpse(captures)
+```
+
+The second file specifies translocation data: 
+
+```{r show-trans-data}
+translocations <- "../data/translocations.tyndallpond.mrmr.csv" %>%
+  read_csv
+
+glimpse(translocations)
+```
+
+Each row corresponds to a translocation event of one unique individual. 
+
+The third file specifies survey-level data:
+
+```{r show-survey-data}
+surveys <- "../data/surveys.tyndallpond.mrmr.csv" %>%
+  read_csv
+    
+glimpse(surveys)
+```
+
+Here, each row is a unique survey.
+
+
+### Including survival covariates
+
+Individual-level survival covariates can be included optionally via the 
+`survival_formula` and `survival_fill_value` arguments. 
+Both of these must be specified, because covariate values for pseudo-individuals 
+must be filled in (they are never observed).
+So, for example, to evaluate the effect of an experimental treatment, if some 
+individuals belong to a "treatment" group and others belong to an "control" 
+group, then a group must be specified as a fill value (e.g., "wild-caught" or 
+"control", depending on the experiment):
+
+
+```{r survival-covariate, message=FALSE, eval=FALSE}
+# specify the formula
+data <- clean_data(captures, surveys, translocations,
+                   survival_formula = ~ treatment, 
+                   survival_fill_value = c(treatment = "unexposed"))
+```
+
+
+## Model structure
+
+The `mrmr` package implements a Bayesian open-population Jolly-Seber mark recapture model with known additions to the population (introduced adults).
+The model tracks the states of $M$ individuals that comprise a superpopulation made up of real and pseudo-individuals (see Joseph and Knapp 2018, *Ecosphere* for details).
+
+We assume a robust sampling design where the states of individuals are constant within primary periods, which have repeat secondary periods within them (during which observations are made). 
+The possible states of individuals include "not recruited", "alive", and "dead". 
+The possible observations of individuals include "detected" and "not detected". 
+We assume that individuals that are in the "not recruited" or "dead" states are never detected (i.e., there are no mistakes in the individual PIT tag ID records).
+
+## Model fitting
+
+To fit a mark-recapture model, use `mrmr::fit_model()`. 
+This model accounts for known introductions into the population, and has 
+random effects to account for variation in survival and recruitment through time. 
+
+```{r fit-model}
+mod <- fit_model(data, cores = parallel::detectCores())
+```
+
+Save model object
+```{r}
+# compressed file
+
+write_rds(mod, "../out/model_tyndall_mrmr.rds", "xz", compression = 9L)
+```
+
+To diagnose potential non-convergence of the MCMC algorithm, inspect traceplots:
+
+```{r plot-traceplots}
+pars_to_plot <- c('alpha_lambda', 
+                  'sigma_lambda', 
+                  'beta_phi', 
+                  'sigma_phi', 
+                  'beta_detect')
+traceplot(mod$m_fit, pars = pars_to_plot)
+```
+
+It is also a good idea to look at Rhat estimates to see whether they 
+indicate of a lack of convergence (Rhat values $\geq$ 1.01):
+
+```{r print-model}
+print(mod$m_fit, pars = pars_to_plot)
+```
+
+
+Compare posterior estimates for survival between Bd-exposed and unexposed 
+individudals. 
+
+```{r}
+post <- rstan::extract(mod$m_fit)
+
+# Check that all translocation treatments match
+t1 <- data$survival_covariate_df %>%
+  filter(pit_tag_id %in% translocations$pit_tag_id) %>%
+  arrange(pit_tag_id)
+t2 <- distinct(translocations, pit_tag_id, treatment) %>%
+  mutate(pit_tag_id = as.character(pit_tag_id)) %>%
+  arrange(pit_tag_id)
+stopifnot(all_equal(t1$treatment, t2$treatment))
+
+
+survival_df <- post$phi %>%
+  reshape2::melt(varnames = c("iter", "individual", "primary_period")) %>%
+  as_tibble %>%
+  mutate(pit_tag_id = data$survival_covariate_df$pit_tag_id[individual]) %>%
+  left_join(data$survival_covariate_df) %>%
+  distinct(iter, primary_period, value, treatment) %>%
+  left_join(data$surveys %>% filter(secondary_period < 2))
+
+survival_df %>%
+  ggplot(aes(x = value, color = treatment)) + 
+  stat_density(geom = "line", position = position_dodge(width=0)) + 
+  facet_wrap(~ survey_date, scales = 'free_y') + 
+  xlab("Survival probability") + 
+  ylab("Posterior density") + 
+  scale_color_discrete("Treatment")
+
+paste("Posterior probability that treatment increased survival:", 
+      mean(post$beta_phi[, 2] < 0))
+```
+
+
+## Built-in visualizations
+
+Time series of abundance, recruitment, and survival of introduced cohorts are
+available through the `mrmr::plot_model()` function. 
+
+```{r plot-abundance}
+plot_model(mod, what = 'abundance') %>% ggsave
+```
+
+```{r plot-recruitment}
+plot_model(mod, what = 'recruitment')
+```
+
+```{r plot-survival}
+plot_model(mod, what = 'survival')
+```
+
+## Survival table
+```{r}
+survival_table(mod)
+```
+
+
+## Custom visualizations
+
+Any of the plotting functionality that you would expect from a `stanfit` model
+is available as well, by accessing the `m_fit` list element from a model object. 
+For example, we could assess the posterior for the superpopulation size:
+
+```{r}
+traceplot(mod$m_fit, pars = "Nsuper")
+```
+
+
+Plot cohort survival by treatment group, with 95% credible intervals and 
+lines/points on the posterior median.
+
+```{r}
+primary_period_dates <- mod$data$surveys %>%
+  group_by(.data$primary_period) %>%
+  summarize(date = min(.data$survey_date),
+            year = min(.data$year)) %>%
+  ungroup
+
+mod$post$s %>%
+  reshape2::melt(varnames = c('iter', 'i', 'primary_period')) %>%
+  as_tibble %>%
+  mutate(pit_tag_id = dimnames(mod$data$stan_d$Y)[[1]][.data$i]) %>%
+  filter(.data$pit_tag_id %in% as.character(mod$data$translocations$pit_tag_id)) %>%
+  left_join(distinct(mod$data$translocations,
+                     .data$pit_tag_id, .data$release_date)) %>%
+  left_join(mod$data$survival_covariate_df) %>%
+  group_by(.data$release_date, .data$primary_period, .data$iter, .data$treatment) %>%
+  summarize(fraction_alive = mean(.data$value == 2)) %>%
+  ungroup %>%
+  filter(.data$primary_period > 1) %>%
+  left_join(primary_period_dates) %>%
+  filter(.data$date >= .data$release_date) %>%
+  group_by(.data$release_date, .data$date, .data$treatment) %>%
+  summarize(lo = quantile(.data$fraction_alive, .025),
+            med = median(.data$fraction_alive),
+            hi = quantile(.data$fraction_alive, .975)) %>%
+  ungroup %>%
+  mutate(grp = paste(treatment, release_date), 
+         release_date = paste("Released on", release_date)) %>%
+  ggplot(aes(.data$date, .data$med,
+             color = tools::toTitleCase(.data$treatment),
+             fill = tools::toTitleCase(.data$treatment), 
+             group = .data$grp)) +
+  geom_ribbon(aes(ymin = .data$lo, ymax = .data$hi),
+              alpha = .4, color = NA) +
+  geom_line() +
+  geom_point() +
+  ylab('Fraction surviving') +
+  xlab('Date') +
+  scale_color_brewer('Treatment', palette = "Dark2") +
+  scale_fill_brewer('Treatment', palette = "Dark2") +
+  scale_x_date(date_breaks = "1 year") + 
+  facet_wrap(~release_date, ncol = 1)
+```
+
+## Export plot
+```{r}
+ggsave("../out/tyndall_plots2.png", width = 6.5, height = 4.5)
+```
+
+## Customize and arrange plots
+```{r}
+# survival plot
+
+primary_period_dates <- mod$data$surveys %>%
+  group_by(.data$primary_period) %>%
+  summarize(date = min(.data$survey_date),
+            year = min(.data$year)) %>%
+  ungroup
+
+p1 <- mod$post$s %>%
+  reshape2::melt(varnames = c('iter', 'i', 'primary_period')) %>%
+  as_tibble %>%
+  mutate(pit_tag_id = dimnames(mod$data$stan_d$Y)[[1]][.data$i]) %>%
+  filter(.data$pit_tag_id %in% as.character(mod$data$translocations$pit_tag_id)) %>%
+  left_join(distinct(mod$data$translocations,
+                     .data$pit_tag_id, .data$release_date)) %>%
+  left_join(mod$data$survival_covariate_df) %>%
+  group_by(.data$release_date, .data$primary_period, .data$iter, .data$treatment) %>%
+  summarize(fraction_alive = mean(.data$value == 2)) %>%
+  ungroup %>%
+  filter(.data$primary_period > 1) %>%
+  left_join(primary_period_dates) %>%
+  filter(.data$date >= .data$release_date) %>%
+  group_by(.data$release_date, .data$date, .data$treatment) %>%
+  summarize(lo = quantile(.data$fraction_alive, .025),
+            med = median(.data$fraction_alive),
+            hi = quantile(.data$fraction_alive, .975)) %>%
+  ungroup %>%
+  mutate(grp = paste(treatment, release_date), 
+         release_date = paste("Released on", release_date)) %>%
+  ggplot(aes(.data$date, .data$med,
+             color = tools::toTitleCase(.data$treatment),
+             fill = tools::toTitleCase(.data$treatment), 
+             group = .data$grp)) +
+  geom_ribbon(aes(ymin = .data$lo, ymax = .data$hi),
+              alpha = .4, color = NA) +
+  geom_line() +
+  geom_point() +
+  ylab('Fraction surviving') +
+  xlab('Date') +
+  scale_color_brewer('Treatment', palette = "Dark2") +
+  scale_fill_brewer('Treatment', palette = "Dark2") +
+  scale_x_date(date_breaks = "1 year") + 
+  facet_wrap(~release_date, ncol = 1)
+
+p1 <- p1 + ggtitle('A. Survival of reintroduced frogs') +
+  theme(legend.position = c(0.15, 0.2))
+
+# abundance plot
+
+p2 <- plot_model(mod, what = 'abundance') 
+p2 <- p2 + ggtitle('B. Population size') +
+    ylab("Number of adults")
+
+# recruitment plot
+
+p3 <- plot_model(mod, what = 'recruitment')
+p3 <- p3 + ggtitle('C. Recruitment') +
+    ylab("Number of adults")
+
+library(patchwork) 
+
+p1 / p2 / p3 +
+  plot_layout(heights = c(2.5, 1, 1))
+ggsave("../out/tyndall_plot_all.png", width = 6.5, height = 7.2)
+```
+
+
+Quick sanity check: if the treatment increased survival, then in 2019, we 
+should have seen more treated animals than untreated from the initial 
+translocation.
+
+```{r}
+cohort_transloc <- translocations %>%
+  filter(release_date == as.Date("2016-07-18"))
+
+count(cohort_transloc, treatment) %>%
+  mutate(frac = n / sum(n))
+# our null expectation is that we should see ~69% exposed individuals, 
+# and 31% unexposed from this first translocation
+
+captures %>%
+  filter(survey_date > as.Date("2019-01-01"), 
+         pit_tag_id %in% cohort_transloc$pit_tag_id) %>%
+  group_by(survey_date) %>%
+  count(category) %>%
+  mutate(frac = n / sum(n))
+# for each survey, we see a larger fraction of exposed individuals than
+# expected based on our null expectation.
+```

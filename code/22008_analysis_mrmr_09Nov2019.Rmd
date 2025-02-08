@@ -1,0 +1,82 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+Analysis of 22008 CMR dataset
+* use 'treatment' covariate in translocation file to evaluate survival of Bd-exposed and unexposed frogs
+
+Install mrmr package if current version is not available
+```{r}
+remotes::install_github("SNARL1/mrmr")
+```
+
+Load required packages
+```{r}
+library(dplyr)
+library(readr)
+library(tibble)
+library(rstan)
+library(mrmr)
+```
+
+Set working directory for Tyndall Pond (may have to do this from console - following may not be working)
+```{r}
+knitr::opts_knit$set(root.dir = '/media/rknapp/Data/Box Sync/SNARL shared folder/Projects/cmr_analysis/sites/tyndall/tyndall')
+getwd()
+```
+
+Create required data frames
+```{r}
+captures <- read_csv("captures.tyndallpond.mrmr.csv")
+translocations <- read_csv("translocations.tyndallpond.mrmr.csv")
+surveys <- read_csv("surveys.tyndallpond.mrmr.csv")
+```
+
+Read and clean the data
+```{r}
+    data_tyndallpond <- clean_data(captures, surveys, translocations,
+                                    survival_formula = ~ treatment,
+                                    survival_fill_value = c(treatment = "unexposed"))
+```
+
+Fit model
+```{r}
+# use 'chains = 1, iter = 10' for initial model check
+# use 'chains = 3, iter = ~1000' for actual model run
+model_tyndallpond <- fit_model(data_tyndallpond, cores = parallel::detectCores(), chains = 3, iter = 500)
+```
+
+Check model fit
+```{r}
+traceplot(model_tyndallpond$m_fit, par = "Nsuper")
+
+pars_to_plot <- c('alpha_lambda', 
+                  'sigma_lambda', 
+                  'beta_phi', 
+                  'sigma_phi', 
+                  'beta_detect')
+traceplot(model_tyndallpond$m_fit, pars = pars_to_plot)
+
+print(model_tyndallpond$m_fit, pars = pars_to_plot)
+```
+
+Visualize results
+```{r}
+plot_model(model_tyndallpond, what = 'abundance')
+plot_model(model_tyndallpond, what = 'recruitment')
+plot_model(model_tyndallpond, what = 'survival')
+```
+
+Save model objects
+```{r}
+write_rds(model_tyndallpond, "model_tyndallpond_mrmr.rds")
+
+# Or compressed
+write_rds(model_tyndallpond, "model_tyndallpond_mrmr_compressed.rds", "xz", compression = 9L)
+```
+
+Read model objects back in
+```{r}
+model_tyndallpond <- read_rds("model_tyndallpond_mrmr_compressed.rds")
+```
+

@@ -1,4 +1,4 @@
-# mrmr analysis of Ruskin dataset (South Fork Kings River)
+# mrmr analysis of 10285 dataset  # UPDATE CODE & RERUN
 
 # Load dependencies
 source('R/load-deps.R')
