@@ -1,0 +1,130 @@
+
+---
+title: "sample_run_54188"
+output: html_notebook
+date: "2025-02-13"
+---
+
+## Introduction
+
+This notebook analyzes capture-mark-recapture data using the *mrmr* and *mrmrmr* packages. *mrmrmr* provides access to an adapted version of the model deployed by *mrmr*.
+
+Added functionality in *mrmrmr* includes:
+
+1.  A random effects parameter for detection probabilities, which accounts for unobserved sources of variation in detection over each survey session.
+
+2.  Calculation of average survival probability of all frogs between primary periods in the generated quantities block.
+
+3.  Calculation of time-varying detection probabilities for each session in the generated quantities block.
+
+4.  Calculation of the log likelihood of each individual's capture history in the generated quantities block, which is used to quantify the model's predictive accuracy and is necessary for model comparison methods.
+
+## Install the mrmr and mrmrmr packages
+
+```{r}
+
+# install cmdstanr and cmdstan
+remotes::install_github("stan-dev/cmdstanr")
+cmdstanr::install_cmdstan(overwrite = TRUE)
+
+# install mrmr and mrmrmr
+remotes::install_github("SNARL1/mrmr")
+remotes::install_github("john-imperato/mrmrmr")
+
+```
+
+## Load required packages
+
+```{r}
+
+library(dplyr)
+library(readr)
+library(tibble)
+library(cmdstanr)
+library(mrmr)
+library(mrmrmr)
+library(patchwork)
+library(bayesplot)
+
+```
+
+## Create required data sets
+
+```{r}
+
+captures <- read_csv(here::here("data", "54188_capture.csv"))
+surveys <- read_csv(here::here("data", "54188_survey.csv"))
+
+```
+
+## Clean data with mrmr
+
+```{r}
+
+# clean data with the mrmr function
+data_54188_TVD <- mrmr::clean_data(captures, surveys)
+
+```
+
+## Fit mrmrmr model with session-specific detection probabilities
+
+```{r}
+
+# fit model and assign to object
+model_54188_TVD <- mrmrmr::fit_model_TVD(data = data_54188_TVD,
+                                            chains = 4,
+                                            parallel_chains = 4,
+                                            threads_per_chain = 2,
+                                            adapt_delta = 0.99)
+
+# save model as .rds file
+write_rds(model_54188_TVD, here::here("sample_run", "54188_model_TVD.rds"))
+
+```
+
+## Save the model summary to an object
+
+```{r}
+
+summary_54188 <- model_54188_TVD$m_fit$summary()
+
+```
+
+## Diagnose potential non-convergence of the MCMC algorithm
+
+-   Inspect traceplots and parameter summary table. In table, are any R~hat~ values $\ge 1.01$?
+
+```{r model-diagnostics}
+pars_to_plot <- c('alpha_lambda', 
+                  'sigma_lambda', 
+                  'beta_phi', 
+                  'sigma_phi', 
+                  'beta_detect')
+bayesplot::mcmc_trace(model_54188_TVD$m_fit$draws(pars_to_plot))
+
+model_54188_TVD$m_fit$summary(pars_to_plot)
+
+```
+
+## Print parameters
+
+```{r}
+
+# abundance
+abundance_54188 <- subset(summary_54188, grepl("N\\[[0-9]+\\]", variable))
+
+# recruitment  
+recruitment_54188 <- subset(summary_54188, grepl("B\\[[0-9]+\\]", variable))
+
+# detection
+detection_54188 <- subset(summary_54188, grepl("p\\[[0-9]+\\]", variable))
+
+# average survival
+avg.survival_54188 <- subset(summary_54188, grepl("overall_phi\\[[0-9]+\\]", variable))
+
+print(abundance_54188)
+print(recruitment_54188)
+print(detection_54188)
+print(avg.survival_54188)
+
+```
