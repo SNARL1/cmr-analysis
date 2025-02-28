@@ -1,0 +1,8 @@
+site_id,survey_date,survey_type,primary_period,secondary_period
+10109,2022-07-18,cmr,1,1
+10109,2022-07-19,cmr,1,2
+10109,2022-07-20,cmr,1,3
+10109,2022-07-21,reintroduction,2,0
+10109,2023-08-25,cmr,3,1
+10109,2023-08-26,cmr,3,2
+10109,2023-08-28,reintroduction,4,0
