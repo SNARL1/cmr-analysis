@@ -3,8 +3,8 @@ title: "mrmr updated"
 author: "John Imperato"
 format:
   markdown: 
-      code-fold: false
-      embed-metadata: false
+    code-fold: false
+    embed-metadata: false
 jupyter: false
 engine: knitr
 execute:
