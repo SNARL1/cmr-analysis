@@ -3,6 +3,7 @@ author:
 - John Imperato
 authors:
 - John Imperato
+embed-metadata: false
 execute:
   engine: knitr
   eval: false
