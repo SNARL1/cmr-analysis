@@ -64,8 +64,7 @@ Below are the key code changes in each relevant block of the Stan model:
 
 *Original*
 
-::: {.cell output.var="model"}
-``` {.stan .cell-code}
+``` stan
 parameters {
   // recruitment parameters
   real alpha_lambda;
@@ -81,12 +80,10 @@ parameters {
   vector[m_detect] beta_detect;
 }
 ```
-:::
 
 *Updated*
 
-::: {.cell output.var="model"}
-``` {.stan .cell-code}
+``` stan
 parameters {
   // recruitment parameters
   real alpha_lambda;
@@ -105,14 +102,12 @@ parameters {
   vector[Jtot] eps_detect;
 }
 ```
-:::
 
 #### Transformed Parameters Block
 
 *Original*
 
-::: {.cell output.var="model"}
-``` {.stan .cell-code}
+``` stan
 transformed parameters {
   vector[Jtot] logit_detect;
   vector<lower=0, upper=1>[T] lambda;
@@ -125,12 +120,10 @@ transformed parameters {
   logit_detect = X_detect * beta_detect;
 }
 ```
-:::
 
 *Updated*
 
-::: {.cell output.var="model"}
-``` {.stan .cell-code}
+``` stan
 transformed parameters {
   vector[Jtot] logit_detect;
   vector<lower=0, upper=1>[T] lambda;
@@ -146,14 +139,12 @@ transformed parameters {
   }
 }
 ```
-:::
 
 #### Model Block
 
 *Original*
 
-::: {.cell output.var="model"}
-``` {.stan .cell-code}
+``` stan
 model {
   // priors
   alpha_lambda ~ std_normal();
@@ -170,12 +161,10 @@ model {
                        j_idx, Y, Jtot, T);
 }
 ```
-:::
 
 *Updated*
 
-::: {.cell output.var="model"}
-``` {.stan .cell-code}
+``` stan
 model {
   // priors for recruitment
   alpha_lambda ~ std_normal();
@@ -199,13 +188,12 @@ model {
                        j_idx, Y, Jtot, T);
 }
 ```
-:::
 
 ## Generated Quantities
 
-The original mrmr model provided essential population metrics as
-generated quantities (abundance, recruitment) but lacks easy access to
-other parameters of interest, including survey-specific detection
+The original mrmr model provides some population metrics as generated
+quantities (abundance, recruitment) but lacks easy access to other
+parameters of interest, including survey-specific detection
 probabilities, population-level survival probability estimates between
 primary periods, and individual log-likelihoods, which are useful for
 model comparison.
@@ -216,8 +204,7 @@ The code below is a sub section of the updated model's generated
 quantities block, showcasing the three new derived parameters and how
 they are calculated.
 
-::: {.cell output.var="model"}
-``` {.stan .cell-code}
+``` stan
 // Additional derived quantities
 vector[T-2] overall_phi;       // Overall survival for transitions
 vector[Jtot] p;                // Detection probabilities for each survey
@@ -248,13 +235,12 @@ for (j in 1:Jtot) {
   }
 }
 ```
-:::
 
 ## Testing and Validation
 
 The modified model has been tested with *Rana sierrae* mark-recapture
 datasets from MLRG's site 54188 and from the California Department of
-Fish and Wildlife's Mossy Pond study. Key findings include:
+Fish and Wildlife's Mossy Pond study. We find:
 
 1.  Improved model fit as assessed by LOO (made possible by the addition
     of `log_lik`)
