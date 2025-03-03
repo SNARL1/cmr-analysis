@@ -1,7 +1,14 @@
 ---
 title: "mrmr updated"
-format: html
-editor: visual
+author: "John Imperato"
+format:
+  markdown: 
+      code-fold: false
+jupyter: false
+engine: knitr
+execute:
+  eval: false
+  engine: knitr
 ---
 
 # Overview
