@@ -4,12 +4,12 @@ author: "John Imperato"
 format:
   markdown: 
       code-fold: false
+      embed-metadata: false
 jupyter: false
 engine: knitr
 execute:
   eval: false
   engine: knitr
-embed-metadata: false
 ---
 
 # Overview
