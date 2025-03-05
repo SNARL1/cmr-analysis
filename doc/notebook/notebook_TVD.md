@@ -40,15 +40,35 @@ level. If no detection covariates are included in the model, detection
 probability will be identical for all surveys.
 
 In the updated model, we introduce a random effects parameter to account
-for unobserved heterogeneity in detection probability across surveys.
+for *unobserved* heterogeneity in detection probability across surveys.
 This captures survey-specific factors that are not reflected by fixed
-predictors.
+predictors. Modeling detection heterogeneity at the survey level rather
+than the individual level maintains the assumption that variability is
+driven by the conditions of the survey rather than inherent differences
+among animals (sex, body size, age, etc.).
 
-In statistical terms, the original model treats any unexplained
-variation in detection as observation error, while the updated model
-explicitly models this as survey-specific random effects, providing more
-realistic uncertainty estimates and potentially more accurate parameter
-estimates.
+We justify including random detection effects because fixed effects data
+are not always available or consistently measured across all surveys,
+limiting our ability to explicitly model detection variability.
+Additionally, on-the-ground experience suggests that survey conditions
+influence detection in ways that are not entirely captured by available
+covariates. We believe that some sources of variation are difficult to
+quantify but still affect detection probability. By incorporating a
+random effect, we acknowledge these unmeasured influences and allow the
+model to absorb unexplained variability, rather than forcing all
+variation to be attributed to measured predictors. In some cases,
+explaining the exact sources of heterogeneity is less critical than
+obtaining the most accurate parameter estimates possible, particularly
+when detection variability might otherwise bias survival, recruitment,
+or abundance estimates.
+
+While adding survey-level random effects can improve model flexibility
+and robustness---as was the case when testing and assessing our updated
+model---it can become redundant if highly explanatory fixed effects are
+already included. If most of the variability in detection is accounted
+for by measured covariates, the random effect may contribute little
+additional explanatory power and could lead to overfitting or
+difficulties in parameter interpretation.
 
 ### Implementation
 

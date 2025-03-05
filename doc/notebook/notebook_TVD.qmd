@@ -28,9 +28,11 @@ This notebook documents extensions to the mrmr package's Stan model for mark-rec
 
 The original mrmr model assumes that all variability in detection probabilities across surveys (secondary periods) is explained by the fixed effects of measured covariates (i.e., air and water temperature, survey effort, surveyor identity, etc.). All surveys share an intercept term for detection (a baseline logit scale detection value), and the effects of measured covariates are added to that intercept at the survey level. If no detection covariates are included in the model, detection probability will be identical for all surveys.
 
-In the updated model, we introduce a random effects parameter to account for unobserved heterogeneity in detection probability across surveys. This captures survey-specific factors that are not reflected by fixed predictors.
+In the updated model, we introduce a random effects parameter to account for *unobserved* heterogeneity in detection probability across surveys. This captures survey-specific factors that are not reflected by fixed predictors. Modeling detection heterogeneity at the survey level rather than the individual level maintains the assumption that variability is driven by the conditions of the survey rather than inherent differences among animals (sex, body size, age, etc.).
 
-In statistical terms, the original model treats any unexplained variation in detection as observation error, while the updated model explicitly models this as survey-specific random effects, providing more realistic uncertainty estimates and potentially more accurate parameter estimates.
+We justify including random detection effects because fixed effects data are not always available or consistently measured across all surveys, limiting our ability to explicitly model detection variability. Additionally, on-the-ground experience suggests that survey conditions influence detection in ways that are not entirely captured by available covariates. We believe that some sources of variation are difficult to quantify but still affect detection probability. By incorporating a random effect, we acknowledge these unmeasured influences and allow the model to absorb unexplained variability, rather than forcing all variation to be attributed to measured predictors. In some cases, explaining the exact sources of heterogeneity is less critical than obtaining the most accurate parameter estimates possible, particularly when detection variability might otherwise bias survival, recruitment, or abundance estimates.
+
+While adding survey-level random effects can improve model flexibility and robustness—as was the case when testing and assessing our updated model—it can become redundant if highly explanatory fixed effects are already included. If most of the variability in detection is accounted for by measured covariates, the random effect may contribute little additional explanatory power and could lead to overfitting or difficulties in parameter interpretation.
 
 ### Implementation
 
@@ -42,7 +44,7 @@ Below are the key code changes in each relevant block of the Stan model:
 
 *Original*
 
-```{.stan}
+``` stan
 parameters {
   // recruitment parameters
   real alpha_lambda;
@@ -61,7 +63,7 @@ parameters {
 
 *Updated*
 
-```{.stan}
+``` stan
 parameters {
   // recruitment parameters
   real alpha_lambda;
@@ -85,7 +87,7 @@ parameters {
 
 *Original*
 
-```{.stan}
+``` stan
 transformed parameters {
   vector[Jtot] logit_detect;
   vector<lower=0, upper=1>[T] lambda;
@@ -101,7 +103,7 @@ transformed parameters {
 
 *Updated*
 
-```{.stan}
+``` stan
 transformed parameters {
   vector[Jtot] logit_detect;
   vector<lower=0, upper=1>[T] lambda;
@@ -122,7 +124,7 @@ transformed parameters {
 
 *Original*
 
-```{.stan}
+``` stan
 model {
   // priors
   alpha_lambda ~ std_normal();
@@ -142,7 +144,7 @@ model {
 
 *Updated*
 
-```{.stan}
+``` stan
 model {
   // priors for recruitment
   alpha_lambda ~ std_normal();
@@ -175,7 +177,7 @@ The original mrmr model provides some population metrics as generated quantities
 
 The code below is a sub section of the updated model's generated quantities block, showcasing the three new derived parameters and how they are calculated.
 
-```{.stan}
+``` stan
 // Additional derived quantities
 vector[T-2] overall_phi;       // Overall survival for transitions
 vector[Jtot] p;                // Detection probabilities for each survey
