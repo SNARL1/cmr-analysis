@@ -1,0 +1,371 @@
+---
+title: "70397 - Create datasets for analysis using *mrmr* - East Evelyn Pond YOSEMITE "
+author: "Roland Knapp"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+This notebook creates the survey and frog capture files for the Yosemite frog population that occurs at site 70397, aka East Evelyn Pond. These are files for use in analyzing capture-mark-recapture data using the *mrmr* package. The code retrieves data from the PostgreSQL amphibians database, runs error checks, and creates the relevant files in *mrmr* format. The code is written in distinct chunks to allow review of results from one chunk before running the next. For example, review of the raw data files is necessary to identify potentially problematic records for review and possible removal from the data set.
+
+As of 11 july 2025, the file does not create translocation data, because no frogs have been released at East Evelyn as of this date. The first draft of these survey and capture data, and the resulting analyses, were conducted prior to a frog relocation action in order to assess the suitability of East Evelyn as a recipient site. Initially, 70397 was thought to contain a marginally persistent and not growing frog population that may have been susceptible to variation and local extinction, and may have warranted augmentation from a nearby, genetically similar, thriving Bd-persistent population (e.g. Kuna Basin).
+
+
+Before using the code in this file, replace all instances of "XXXXX" in the templates with the 5-digit site_id of interest: 70397
+
+Users without credentials to access the database can use the saved CSV files created in the save-raw-data-files code chunk.
+
+Note for credentialed users: Data from the most recent field season may not yet be appended to tables in the amphibians database.
+If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying code chunks in "fulcrum_data_append.Rmd" into this notebook and executing all code chunks.
+
+## Load packages
+
+```{r load-packages}
+library(tidyverse)
+library(RPostgreSQL)
+library(RPostgres)
+library(lubridate)
+library(assertthat)
+# options(readr.show_col_types = FALSE)
+```
+
+## Retrieve data from Current Year fulcrum downloads
+```{r create_append_files}
+visit_70397_current <- read_csv(here::here("data", "raw", "current_year", "70397_survey.csv")) %>% 
+  select("_record_id", site_id, visit_date, visit_status, visit_comment) %>% 
+  rename(comment_visit = visit_comment) %>% 
+  rename(record_id = "_record_id")
+
+survey_70397_current <- read_csv(here::here("data", "raw", "current_year", "70397_survey_description.csv")) %>% 
+  select("_record_id", survey_type, survey_description, wind, sky, air_temp, duration, survey_quality, general_survey_comment) %>% 
+  filter(survey_type == "cmr") %>% 
+  rename(description = survey_description, comment_survey = general_survey_comment) %>% 
+  rename(record_id = "_record_id")
+
+amphibian_capture_70397_current <- read_csv(here::here("data", "raw", "current_year", "70397_survey_amphibian_capture.csv")) %>% 
+  filter(method == "cmr") %>% 
+  rename(comment_capture = capture_comment) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
+  replace_na(list(species = "ramu", capture_life_stage = "adult")) %>% 
+  select("_record_id", pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_capture) %>% 
+  rename(record_id = "_record_id")
+
+survey_append_70397_current <- visit_70397_current %>% 
+  inner_join(survey_70397_current, by = c("record_id")) %>% 
+  select(-record_id)
+
+capture_append_70397_current <- visit_70397_current %>% 
+  inner_join(survey_70397_current, by = c("record_id")) %>% 
+  inner_join(amphibian_capture_70397_current, by = c("record_id")) %>% 
+  select(-record_id)
+```
+
+### Clean up environment
+```{r}
+rm(amphibian_capture_70397_current, survey_70397_current, visit_70397_current)
+```
+
+
+## Retrieve data from PostgreSQL database
+
+### Connect to database
+
+- When connecting via SSH, open external connection to database, then replace "Sys.getenv" with "rstudioapi::askForPassword" for host and port, run chunk.   
+- Users without credentials can use CSV files created in code chunk "save-raw-data-files" below as a starting point.  
+
+```{r db-connect}
+con = dbConnect(dbDriver("PostgreSQL"),
+                host = Sys.getenv("host"), 
+                port = Sys.getenv("port"), 
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
+```
+
+### Retrieve translocation/reintroduction data from database
+
+NA for 70397 as of 11 Julu 2025
+
+### Retrieve survey data from database
+Pre-2025 in database: In 2023, some frogs were PIT tagged during a RIBBiTR training day. Per Tom's recollection from being involved in this survey, this survey was a substantial effort that covered the entire site more or less equally, and captured all of the frogs that were available during that survey. In essence, the effort and frog captures are equitable to what would have been produced in a "one day" CMR survey of this site (though, certainly distinct from a robust design primary/secondary design survey). 
+
+In the database, those frog captures were recorded under the survey type "swab" because RIBBiTR samples were the primary goal of the visit, and our protocol indicated that frogs captured for RIBBiTR samples are captured during a swab survey. With CMR efforts starting in 2025, some of the small number of frogs that were PIT tagged during that 2023 survey were recaptured. Concurrently, that RIBBiTR surveys samples and data 1) are unlikely to be used in a meaningful way due to the small sample size and lake of revisits, and 2) are already pushed to the RIBBiTR database. 
+
+To address the modified context of these frog captures (more appropriate for subsequent CMR analysis than RIBBiTR), on 11 July 2025, Alexa changed the survey type from "swab" to "cmr" (using dBeaver).
+
+- Edit "where" statement to include relevant site_ids and types.
+- If some relevant surveys are classified as "ves", include in "where" statement. 
+
+```{sql retrieve-survey-data, connection=con, output.var = "survey_70397"}
+select 
+  site_id, 
+  visit_date, 
+  visit_status, 
+  survey_type, 
+  description, 
+  survey_quality,
+  wind,
+  sky,
+  air_temp,
+  duration,
+  visit.comment as comment_visit,
+  survey.comment as comment_survey
+from visit
+inner join survey on visit.id = visit_id
+where site_id in (70397) and
+      survey_type = 'cmr'
+```
+
+### Retrieve frog capture data from database
+
+- Edit "where" statement to include relevant site_ids and types. 
+
+```{sql retrieve-capture-data, connection=con, output.var = "capture_70397"}
+select 
+  site_id, 
+  visit_date, 
+  visit_status, 
+  survey_type, 
+  pit_tag_ref, 
+  tag_new, 
+  species, 
+  capture_life_stage, 
+  capture_animal_state, 
+  length, 
+  visit.comment as comment_visit,
+  survey.comment as comment_survey,
+  capture_survey.comment as comment_capture,
+  visit.id as visit_id,
+  survey.id as survey_id,
+  capture_survey.id as capture_id
+from visit
+inner join survey on visit.id = visit_id
+inner join capture_survey on survey.id = survey_id
+where site_id in (70397) and
+      survey_type = 'cmr'
+```
+
+```{r db-disconnect3}
+dbDisconnect(con)
+rm(con)
+```
+
+- Review retrieved datasets before using in subsequent chunks.  
+
+
+### Save raw data files
+```{r save-raw-data-files, message=FALSE}
+survey_70397 %>% write_csv(here::here("data", "raw", "70397_survey_raw.csv"))
+capture_70397 %>% write_csv(here::here("data", "raw", "70397_capture_raw.csv"))
+```
+
+- Read saved files with (for example): translocation_70397 <- read_csv(here::here("data", "raw", "70397_translocation_raw.csv")) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref))
+
+## Create translocation/reintroduction dataset
+
+NA for 70397 as of 11 july 2025.
+
+
+## Create survey dataset
+
+### Include only relevant surveys
+
+- When multiple numbered sites exist in survey area, include only one survey for entire site on each survey date. 
+
+#### Primary site surveyed during each secondary period?
+
+```{r append_currentyear_survey_records}
+# change formats of data vectors and select for each data table
+survey_append_70397_current <- 
+  survey_append_70397_current %>% 
+  mutate(site_id = as.integer(site_id), 
+    visit_date = mdy( visit_date )) %>% 
+  select(site_id, visit_date, visit_status, survey_type, description, survey_quality, wind, sky, air_temp, duration, comment_visit, comment_survey)
+    
+
+survey_70397_old_current <- bind_rows(survey_70397, survey_append_70397_current) %>% 
+  arrange(visit_date, desc(site_id)) %>% 
+  select(site_id, visit_date, visit_status, survey_type, description, survey_quality, wind, sky, air_temp, duration, comment_visit, comment_survey)
+```
+
+- If yes, code chunk will return zero records. Exclude other records as necessary. 
+- In filter statement, edit site_id as necessary.
+
+```{r check-survey-history}
+survey_70397_old_current %>% 
+  add_count(visit_date) %>% 
+  filter(n == 1 & site_id != "70397")
+```
+
+#### Include only surveys at primary site
+
+The East Evelyn site includes only one numbered water body, 70397.
+
+### Add translocation/reintroduction dates as surveys
+
+As of 2025, no translocation/reintroduction has been conducted at 70397.
+
+### Survey data checks
+
+- Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved.  
+- Run lines of code one at a time to allow easy evaluation of messages and outputs.  
+
+```{r survey-data-checks}
+# Check for duplicate survey dates
+survey_70397_old_current %>% count(site_id, visit_date) %>% filter(n > 1)
+
+# Check for sites that were unsuitable for survey
+survey_70397 %>% filter(visit_status != "suitable")
+```
+
+### Clean survey data
+
+- Edit data-cleaning code as necessary. 
+
+```{r clean-survey-data}
+# Drop duplicate surveys
+survey_70397_old_current <- survey_70397_old_current %>% 
+  distinct(visit_date, .keep_all = TRUE)
+```
+
+### Create primary and secondary period columns in mrmr format
+
+- Edit case_when steps to reflect actual translocation/reintroduction and survey history.  
+
+#### For robust design dataset
+
+```{r create-period-columns1}
+survey_70397_old_current <- survey_70397_old_current %>%
+  select(site_id, visit_date, survey_type) %>% 
+  mutate(primary_period = case_when(visit_date == "2023-08-03" ~ 1,
+                                    between(visit_date, ymd("2025-06-27"), ymd("2025-06-29")) ~ 2)
+         ) 
+                                    
+survey_70397_old_current <- survey_70397_old_current %>% 
+  arrange(primary_period, visit_date) %>% 
+  group_by(primary_period) %>% 
+  mutate(secondary_period = seq_len(n()),
+         secondary_period = replace(secondary_period, survey_type != "cmr", 0)) 
+```
+
+#### For single day visit dataset
+
+NA - *Although the first ever PIT tagging event was only a single day, the above code chunk seems to take care of that so this section is commented out*
+
+<!-- 
+``{r create-period-columns2}
+survey_70397 <- survey_70397 %>%
+  select(site_id, visit_date, survey_type) %>% 
+  mutate(primary_period = row_number()) %>% 
+  group_by(primary_period) %>% 
+  mutate(secondary_period = seq_len(n()),
+         secondary_period = replace(secondary_period, survey_type != "cmr", 0))
+```
+-->
+
+### Save cleaned survey file
+
+```{r save-cleaned-survey-data}
+survey_70397_old_current %>% write_csv(here::here("data", "clean", "70397_survey.csv"))
+```
+
+## Create capture dataset
+
+### Bind rows of old and current data
+```{r capture-relevant-columns}
+capture_70397_old_current <- capture_70397 %>% bind_rows( capture_append_70397_current )
+```
+
+### Retain only relevant columns
+
+```{r}
+capture_70397_old_current <- capture_70397_old_current %>% 
+  select(-visit_id, -survey_id, -capture_id)
+
+```
+
+
+### Capture data checks
+
+- Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved.  
+- Run lines of code one at a time to allow easy evaluation of messages and outputs.  
+
+```{r capture-data-checks, message=FALSE}
+# Check for records where pit_tag_ref is NULL
+assert_that(noNA(capture_70397_old_current$pit_tag_ref))
+# returns error: one dead animal included in the raw/original field records
+
+# Check for records containing pit tags shorter than 15 characters (or 9 for early sites)
+assert_that(!any(nchar(capture_70397_old_current$pit_tag_ref) != 15))
+
+# Check for records containing pit tags that end with ".1" (known to be potentially incorrect) 
+assert_that(!any(str_detect(capture_70397_old_current$pit_tag_ref, "\\.1$")))
+
+# Check for records where species != ramu
+capture_70397_old_current %>% drop_na(species) %>% filter(species != "ramu")
+
+# Check for records were survey_type = swab
+assert_that(!any(capture_70397_old_current$survey_type == "swab"))
+
+# Check for records where capture_animal_state is NULL
+assert_that(noNA(capture_70397_old_current$capture_animal_state))
+
+# Check for records where capture_animal_state == "dead" or not "healthy"
+assert_that(!any(capture_70397_old_current$capture_animal_state == "dead"))
+assert_that(!any(capture_70397_old_current$capture_animal_state != "healthy"))
+
+# Check for records of subadult frogs
+capture_70397_old_current %>% drop_na(length) %>% filter(length < 40)
+
+# Check for sites that were unsuitable for survey
+assert_that(!any(capture_70397_old_current$visit_status != "suitable"))
+
+# Check for duplicate capture records on each date
+capture_70397_old_current %>% count(visit_date, pit_tag_ref) %>% filter(n > 1)
+
+# Check for captures that lack associated surveys
+survey_70397_old_current %>% 
+  select(visit_date, primary_period) %>% 
+#   rename(visit_date = survey_date) %>% 
+  right_join(capture_70397, by = c("visit_date")) %>% 
+  filter(is.na(primary_period))
+
+# Simpler alternative
+setdiff(capture_70397_old_current$visit_date, survey_70397_old_current$visit_date) %>% as.Date(origin = "1970-01-01")
+
+# Check for surveys that lack associated captures
+survey_70397_old_current %>% 
+  filter(survey_type == "cmr") %>% 
+  select(visit_date, primary_period) %>% 
+  # rename(visit_date = survey_date) %>% 
+  left_join(capture_70397_old_current, by = c("visit_date")) %>% 
+  filter(is.na(species))
+
+# Simpler alternative
+setdiff(survey_70397$survey_date, capture_70397$visit_date) %>% as.Date(origin = "1970-01-01")
+```
+
+### Clean capture data
+
+```{r clean-capture-data}
+# removes captures of frogs with capture_animal_state == non-"healthy"
+capture_70397_old_current <- capture_70397_old_current %>% 
+  filter(capture_animal_state == "healthy")
+```
+
+### Create final capture dataset formatted for mrmr
+
+```{r final-capture-data}
+capture_70397_final <- capture_70397_old_current %>%
+  rename(survey_date = visit_date, pit_tag_id = pit_tag_ref) %>%
+  arrange(survey_date, pit_tag_id) %>%
+  select(site_id, survey_date, pit_tag_id)
+```
+
+### Save cleaned capture data
+
+```{r save-cleaned-capture-data}
+capture_70397_final %>% write_csv(here::here("data", "clean", "70397_capture.csv"))
+```

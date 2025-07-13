@@ -27,50 +27,59 @@ library(assertthat)
 ## Create current-year survey and capture datasets for appending
 
 ```{r create_append_files}
-visit_50183 <- read_csv(here::here("data", "raw", "current_year", "survey_50183.csv")) %>% 
-  select(record_id, site_id, visit_date, visit_status, visit_comment) %>% 
-  rename(comment_visit = visit_comment)
+visit_50183_2025 <- read_csv(here::here("data", "raw", "current_year", "50183_survey.csv")) %>% 
+  select("_record_id", site_id, visit_date, visit_status, visit_comment) %>% 
+  rename(comment_visit = visit_comment, 
+         record_id = "_record_id")
+  
 
-survey_50183 <- read_csv(here::here("data", "raw", "current_year", "survey_description_50183.csv")) %>% 
-  select(record_id, survey_type, survey_description, wind, sky, air_temp, duration, survey_quality, general_survey_comment) %>% 
+survey_50183_2025 <- read_csv(here::here("data", "raw", "current_year", "50183_survey_description.csv")) %>% 
+  select("_record_id", survey_type, survey_description, wind, sky, air_temp, duration, survey_quality, general_survey_comment) %>% 
   filter(survey_type == "cmr") %>% 
-  rename(description = survey_description, comment_survey = general_survey_comment)
+  rename(description = survey_description, 
+         comment_survey = general_survey_comment,
+         record_id = "_record_id")
 
-amphibian_capture_50183 <- read_csv(here::here("data", "raw", "current_year", "survey_amphibian_capture_50183.csv"), col_types = cols(.default = "?", species="c", capture_life_stage = "c" ) ) %>% 
+amphibian_capture_50183_2025 <- read_csv(here::here("data", "raw", "current_year", "50183_survey_amphibian_capture.csv"), col_types = cols(.default = "?", species="c", capture_life_stage = "c" ) ) %>% 
   filter(method == "cmr") %>% 
-  rename(comment_capture = capture_comment) %>% 
+  rename(comment_capture = capture_comment, 
+         record_id = "_record_id") %>% 
   mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
   replace_na(list(species = "ramu", 
                   capture_life_stage = "adult")) %>% 
   select(record_id, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_capture)
 
-survey_append_50183 <- visit_50183 %>% 
-  inner_join(survey_50183, by = c("record_id")) %>% 
+survey_append_50183 <- visit_50183_2025 %>% 
+  inner_join(survey_50183_2025, by = c("record_id")) %>% 
   select(-record_id)
 
-capture_append_50183 <- visit_50183 %>% 
-  inner_join(survey_50183, by = c("record_id")) %>% 
-  inner_join(amphibian_capture_50183, by = c("record_id")) %>% 
+capture_append_50183 <- visit_50183_2025 %>% 
+  inner_join(survey_50183_2025, by = c("record_id")) %>% 
+  inner_join(amphibian_capture_50183_2025, by = c("record_id")) %>% 
   select(-record_id)
 
 
 ### append current year reintro
-relocate_50183 <- read_csv(here::here("data", "raw", "current_year", "relocate_50183.csv"))
-relocate_amphibians_50183 <- read_csv(here::here("data", "raw", "current_year", "relocate_amphibians_50183.csv")) %>% 
+relocate_50183 <- read_csv(here::here("data", "raw", "current_year", "50183_relocate.csv")) %>% 
+  rename(record_id = "_record_id") %>%  
+  mutate( release_location = 50183 , # added progrmatically but statically because site_id and date are known and same for all individuals in the 2025 current year group
+          release_date = "2025-07-06")  
+
+relocate_amphibians_50183 <- read_csv(here::here("data", "raw", "current_year", "50183_relocate_relocated_individual.csv")) %>% 
+  rename(record_id = "_record_id") %>%  
   mutate(pit_tag_ref = as.character(pit_tag_ref))
   
-
-relocate_50183_2024 <- relocate_50183 %>% 
+relocate_50183_2025 <- relocate_50183 %>% 
   inner_join(relocate_amphibians_50183, by = c("record_id" = "record_id")) %>% 
   mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
-  select(release_location, release_date, pit_tag_ref, tag_new, sex, length, weight, swab_id, relocate_comments) 
+  select(release_location, release_date, pit_tag_ref, tag_new, sex, length, weight, swab_id) 
 
 ```
 
 ### Clean up environment
 
-```{r}
-rm(amphibian_capture_50183, survey_50183, visit_50183, relocate_50183, relocate_amphibians_50183)
+```{r clean-environment-carefully}
+# rm(amphibian_capture_50183, survey_50183, visit_50183, relocate_50183, relocate_amphibians_50183)
 ```
 
 ## Retrieve data from PostgreSQL database
@@ -242,9 +251,10 @@ reintroduction_50183 <- reintroduction_50183 %>%
   select(site_id, type, release_date, pit_tag_id)
 
 # append current year data
-reintroduction_50183 <- relocate_50183_2024 %>% 
+reintroduction_50183 <- relocate_50183_2025 %>% 
   select(release_location, release_date, pit_tag_ref) %>% 
-  mutate(type = c("reintroduction")) %>% 
+  mutate(type = c("reintroduction"), 
+         release_date = ymd(release_date)) %>% 
   rename(site_id = release_location, 
          pit_tag_id = pit_tag_ref) %>%  
   bind_rows(reintroduction_50183) %>% 
@@ -261,8 +271,7 @@ reintroduction_50183 %>%
   write_csv(here::here("data", "clean", "50183_reintroduction.csv"))
 ```
 
-- When reading dataset, format pit_tag_id as character.
-
+- When visually viewing dataset in microsoft excel or libre office, format pit_tag_id as character.
 
 ## Create survey dataset
 
@@ -278,7 +287,7 @@ survey_50183 <- survey_50183 %>%
 
 ### Include only relevant surveys
 
--   When multiple numbered sites exist in survey area, include only one survey for entire site on each survey date.
+Marmot Lake surveys include only Marmot Lake (50183).
 
 #### Primary site surveyed during each secondary period?
 
@@ -305,7 +314,7 @@ survey_50183 <- survey_50183 %>%
 ### Add reintroduction dates as surveys
 ```{r add-reintroduction-surveys}
 # change survey date name
-survey_50183 <- survey_50183 # %>% 
+# survey_50183 <- survey_50183 # %>% 
   # rename(survey_date=visit_date)
 
 survey_50183 <- reintroduction_50183 %>% 
@@ -317,8 +326,7 @@ survey_50183 <- reintroduction_50183 %>%
   mutate(survey_date_2 = case_when(survey_date==ymd("2024-07-31") & survey_type=="reintroduction" ~ ymd("2024-08-01"), 
                                    TRUE ~ survey_date),
          survey_date = survey_date_2) %>% 
-  select(-survey_date_2)
-# revise the 2024 reintroduction to be +1 day to not overlap with the CMR; it occurred in the evening after the day's survey was complete.
+  select(-survey_date_2) # revises the 2024 reintroduction to be +1 day to not overlap with the CMR; it occurred in the evening after the day's survey was complete.
 ```
 
 ### Survey data checks
@@ -366,7 +374,9 @@ survey_50183 <- survey_50183 %>%
                                     between(survey_date, ymd("2023-09-19"), ymd("2023-09-20")) ~ 4,
                                     between(survey_date, ymd("2024-07-29"), ymd("2024-07-31")) ~ 5,
                                     survey_date==ymd("2024-08-01") ~ 6, # 2024 reintroduction, which was actually evening of 7/31,, after surveys completed, but recoded to avoid confusion
-                                    between(survey_date, ymd("2024-09-06"), ymd("2024-09-08")) ~ 7))
+                                    between(survey_date, ymd("2024-09-06"), ymd("2024-09-08")) ~ 7, 
+                                    between(survey_date, ymd("2025-07-03"), ymd("2025-07-05")) ~ 8,
+                                    survey_date==ymd("2025-07-06") ~ 9))
 
 
 survey_50183 <- survey_50183 %>% 
@@ -391,7 +401,7 @@ survey_50183 %>% write_csv(here::here("data", "clean", "50183_survey.csv"))
 capture_50183 <- capture_50183 %>% 
   filter(visit_date > "2022-01-01")
 
-# append 2023 and current year data
+# append 2023, 2024, and current year data
 capture_50183 <- capture_append_50183 %>% 
   select(site_id, visit_date, visit_status, survey_type, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_visit, comment_survey, comment_capture) %>% 
   bind_rows(capture_50183)
@@ -460,7 +470,7 @@ survey_50183 %>%
 # for 50183, there were two CMR surveys both in 2023 that were known to have zero observed frogs.
 
 # Simpler alternative
-setdiff(survey_50183$survey_date, capture_50183$visit_date) %>% as.Date(origin = "1970-01-01") # this includes reintro survey visit dates, which have no captures
+setdiff(survey_50183$survey_date, capture_50183$visit_date) %>% as.Date(origin = "1970-01-01") # this includes reintroduction event visit dates, which have no captures
 ```
 
 ### Clean capture data
@@ -468,7 +478,7 @@ setdiff(survey_50183$survey_date, capture_50183$visit_date) %>% as.Date(origin =
 -   Edit data-cleaning code as necessary.
 
 ```{r clean-capture-data}
-# Nothing to clean
+# Nothing to clean, everything checked out above
 ```
 
 ### Create final capture dataset formatted for mrmr
