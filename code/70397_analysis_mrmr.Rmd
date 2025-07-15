@@ -14,8 +14,8 @@ Before using the code in this file, replace all instances of "70397" with the 5-
 - Run only if updated versions were released since previous install.  
 ```{r install-stan-mrmr-packages}
 # install cmdstanr and cmdstan
-install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-cmdstanr::install_cmdstan()
+remotes::install_github("stan-dev/cmdstanr")
+cmdstanr::install_cmdstan(overwrite = TRUE)
 
 # install mrmr
 remotes::install_github("SNARL1/mrmr")
@@ -29,7 +29,10 @@ library(readr)
 library(tibble)
 library(cmdstanr)
 library(mrmr)
+library(mrmrmr)
 library(patchwork)
+library(bayesplot)
+
 ```
 
 ## Create required datasets
@@ -59,7 +62,7 @@ model_70397 <- fit_model(
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
                     threads_per_chain = 2, 
-                    adapt_delta = 0.01) 
+                    adapt_delta = 0.8) 
 ```
 
 - Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).  
