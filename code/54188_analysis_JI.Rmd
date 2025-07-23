@@ -30,7 +30,6 @@ cmdstanr::install_cmdstan(overwrite = TRUE)
 # install mrmr and mrmrmr
 remotes::install_github("SNARL1/mrmr")
 remotes::install_github("john-imperato/mrmrmr")
-
 ```
 
 ## Load required packages
@@ -52,8 +51,8 @@ library(bayesplot)
 
 ```{r}
 
-captures <- read_csv(here::here("data", "54188_capture.csv"))
-surveys <- read_csv(here::here("data", "54188_survey.csv"))
+captures <- read_csv(here::here("data", "clean", "54188_capture.csv"))
+surveys <- read_csv(here::here("data", "clean", "54188_survey.csv"))
 
 ```
 
