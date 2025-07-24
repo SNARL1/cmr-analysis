@@ -1,0 +1,50 @@
+---
+title: "10109_create_covariates"
+output: html_document
+author: "tomcsmith"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+Site 10109 is a site where *Rana sierrae* were reintroduced in four consecutive years to reestablish a population (2021 - 2024), along with its neighboring site 10114. Frogs developed from tadpoles collected from two donor sites, 10055 and 10037. However, the proportion of each cohort was not even with respect to composition of frogs from each donor site, and in some years the entire cohort may have represented only one source site. In addition, as part of these reintroductions, frogs reared in captivity in the Zoos were potentially exposed to an infective dose of *Batrachochtryium dendrobatidis* and were subsequently treated with an antifungal drug to clear them of that infection. The objective of this procedure was to prompt an immune response in the frogs (so-called "immune priming"). This creates two categorical covariates among the frogs reintroduced to 10109 (and 10114; in addition to those 'implicit' covariates of site, year): donor population (two levels: 10055, 10037) and immune priming history (two levels: "primed", control).
+
+This notebook creates data files containing those above described covariates to be added to survey and capture files used in analyzing capture-mark-recapture data using the *mrmr* package. The code retrieves data from the PostgreSQL amphibians database, runs error checks, and appends the data to the relevant files in *mrmr* format. The code is written in distinct chunks to allow review of results from one chunk before running the next. For example, review of the raw data files is necessary to identify potentially problematic records for review and possible removal from the data set.
+
+Note for credentialed users: Data from the most recent field season may not yet be appended to tables in the amphibians database. If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying code chunks in "fulcrum_data_append.Rmd" into this notebook and executing all code chunks.
+
+## Load packages
+
+```{r load-packages}
+library(tidyverse)
+library(RPostgreSQL)
+library(lubridate)
+library(assertthat)
+# options(readr.show_col_types = FALSE)
+```
+
+## Retrieve data from PostgreSQL database
+
+### Connect to database
+
+- When connecting via SSH, open external connection to database, then replace "Sys.getenv" with "rstudioapi::askForPassword" for host and port, run chunk.   
+- Users without credentials can use CSV files created in code chunk "save-raw-data-files" below as a starting point.  
+
+```{r db-connect}
+con = dbConnect(dbDriver("PostgreSQL"),
+                host = Sys.getenv("host"), 
+                port = Sys.getenv("port"), 
+                dbname = Sys.getenv("dbname"),
+                user = rstudioapi::askForPassword("user name"),
+                password = rstudioapi::askForPassword("password")
+               )
+```
+
+### Retrieve individual frog data
+
+Retrieve individual frog data from repo (/cmr-analysis/data/clean) for *all* frogs, using translocation data (not all frogs are recaptured). 
+
+```{r retrieve-raw-frog-data}
+read_csv(here::here("data/clean/10109_translocation.csv"))
+```
+

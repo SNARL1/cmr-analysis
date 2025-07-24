@@ -277,16 +277,16 @@ survey_10109 <- survey_10109 %>%
 ```{r create-period-columns1}
 survey_10109 <- survey_10109 %>%
   select(site_id, survey_date, survey_type) %>% 
-  mutate(primary_period = case_when(# survey_date == "2021-07-28" ~ 1, # this is the date of the first Goddard reintro, although not currently appearing in the relocate data table.
-                                    between(survey_date, ymd("2022-07-18"), ymd("2022-07-20")) ~ 1,
-                                    survey_date == "2022-07-21" ~ 2,
-                                    between(survey_date, ymd("2023-08-25"), ymd("2023-08-27")) ~ 3,
-                                    survey_date == "2023-08-28" ~ 4 #,
-                                    # 2024 survey
-                                    # 2024 reintro
-                                    # 2024 survey
-                                    ) 
-          )
+  mutate(primary_period = case_when(survey_date == "2021-07-28" ~ 1,
+                                    between(survey_date, ymd("2022-07-18"), ymd("2022-07-20")) ~ 2,
+                                    survey_date == "2022-07-21" ~ 3,
+                                    between(survey_date, ymd("2023-08-25"), ymd("2023-08-27")) ~ 4,
+                                    survey_date == "2023-08-28" ~ 5,
+                                    between(survey_date, ymd("2024-07-15"), ymd("2024-07-17")) ~ 6,
+                                    survey_date == "2024-07-19" ~ 7,
+                                    between(survey_date, ymd("2024-09-06"), ymd("2024-09-07")) ~ 8 #,
+                                    )
+         )
                                     
 survey_10109 <- survey_10109 %>% 
   arrange(primary_period, survey_date) %>% 
@@ -368,9 +368,6 @@ survey_10109 %>%
   rename(visit_date = survey_date) %>% 
   left_join(capture_10109, by = c("visit_date")) %>% 
   filter(is.na(species))
-
-# Simpler alternative
-setdiff(survey_10109$survey_date, capture_10109$visit_date) %>% as.Date(origin = "1970-01-01")
 ## output: no frogs observed at 10109 or neighbors on first-ever CMR survey date 2022-07-18
 ```
 
@@ -383,7 +380,6 @@ capture_10109 <- capture_10109 %>%
   filter(capture_animal_state != "dead")
 ```
 
-### Create final capture dataset formatted for mrmr
 
 ```{r final-capture-data}
 capture_10109 <- capture_10109 %>%
@@ -397,3 +393,12 @@ capture_10109 <- capture_10109 %>%
 ```{r save-cleaned-capture-data}
 capture_10109 %>% write_csv(here::here("data", "clean", "10109_capture.csv"))
 ```
+
+# Covariates
+
+### Survey-level covariates
+Covariates that might affect the probability of detection can be included via the capture_formula argument to clean_data.
+
+### Individual-level survival covariates 
+Covariates that may affect individual level survival can be included optionally via the survival_formula and survival_fill_value arguments
+
