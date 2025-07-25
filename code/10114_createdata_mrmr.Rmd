@@ -210,11 +210,14 @@ translocation_10114 %>% write_csv(here::here("data", "clean", "10114_reintroduct
 ### Include only relevant surveys
 
 - When multiple numbered sites exist in survey area, include only one survey for entire site on each survey date. 
+- Check that non-primary sites have concurrent survey dates (or at least 'non-independent' dates).
+- For 10114, modifies the code by commenting out the site specific filter, because marked/reintroduced frogs are found in neighboring sites to which they have migrated. Then, refines to unique survey dates.
 
 #### Primary site surveyed during each secondary period?
 
 - If yes, code chunk will return zero records. Exclude other records as necessary. 
 - In filter statement, edit site_id as necessary.
+
 
 ```{r check-survey-history}
 survey_10114 %>% 
@@ -222,9 +225,7 @@ survey_10114 %>%
   filter(n == 1 & site_id != "10114")
 ```
 
-#### Include only surveys at primary site
-
-- Run this code chunk as is when only CMR surveys need to be included. If VES surveys also need to be included, modify code accordingly. 
+#### Include surveys at relevant sites
 
 ```{r include-relevant-surveys}
 survey_10114 <- survey_10114 %>% 
@@ -235,12 +236,13 @@ survey_10114 <- survey_10114 %>%
 
 ### Add translocation/reintroduction dates as surveys
 
-- Skip if translocations/reintroductions are not relevant.  
+There are four reintroduction dates for 10114 in each of 2021-2024. All frogs were released into 10114.
 
 ```{r add-translocation-surveys}
 survey_10114 <- translocation_10114 %>% 
   distinct(site_id, release_date, type) %>% 
-  rename(survey_type = type, survey_date = release_date) %>% bind_rows(survey_10114) %>% 
+  rename(survey_type = type, survey_date = release_date) %>% 
+  bind_rows(survey_10114) %>% 
   arrange(survey_date) 
 ```
 
@@ -280,17 +282,18 @@ This will ultimately be reflected in the relocate data, but the first Goddard re
 # make reintro dates single day primary periods
 survey_10114 <- survey_10114 %>%
   select(site_id, survey_date, survey_type) %>% 
-  mutate(primary_period = case_when(# survey_date == "2021-07-28" ~ 1, # this is the date of the first Goddard reintro, although not currently appearing in the relocate data table.
-                                    between(survey_date, ymd("2022-07-18"), ymd("2022-07-20")) ~ 1,
-                                    survey_date == "2022-07-21" ~ 2,
-                                    between(survey_date, ymd("2023-08-25"), ymd("2023-08-27")) ~ 3,
-                                    survey_date == "2023-08-28" ~ 4 #,
-                                    # 2024 survey
-                                    # 2024 reintro
-                                    # 2024 survey
+  mutate(primary_period = case_when(survey_date == "2021-07-28" ~ 1, 
+                                    between(survey_date, ymd("2022-07-18"), ymd("2022-07-20")) ~ 2,
+                                    survey_date == "2022-07-21" ~ 3,
+                                    between(survey_date, ymd("2023-08-25"), ymd("2023-08-27")) ~ 4,
+                                    survey_date == "2023-08-28" ~ 5,
+                                    between(survey_date, ymd("2024-07-15"), ymd("2024-07-17")) ~ 6,
+                                    survey_date == "2024-07-19" ~ 7,
+                                    between(survey_date, ymd("2024-09-06"), ymd("2024-09-07")) ~ 8,
                                     ) 
         )
-                                    
+                               
+
 survey_10114 <- survey_10114 %>% 
   arrange(primary_period, survey_date) %>% 
   group_by(primary_period) %>% 
@@ -365,11 +368,14 @@ survey_10114 %>%
   rename(visit_date = survey_date) %>% 
   left_join(capture_10114, by = c("visit_date")) %>% 
   filter(is.na(species))
-# at goddard 10114, the first resurvey day in 2022 found no frogs.
+# Acceptable outcome:
+# at goddard 10114, 
+# the first resurvey day in 2022 found no frogs.
+# the July 2024 survey had one secondary period with no frogs (July 16, the second/middle day of the trip)
 
-# Simpler alternative
+# Simpler alternative, but does not discount the reintro dates.
 setdiff(survey_10114$survey_date, capture_10114$visit_date) %>% as.Date(origin = "1970-01-01")
-# this suggests that at Goddard 10114, three survey says turned up no frogs - but, two of those dates are reintro dates and not true surveys.
+# this suggests that at Goddard 10114, three survey says turned up no frogs - but, some of those dates are reintro dates and not true surveys.
 ```
 
 ### Clean capture data
