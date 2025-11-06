@@ -32,7 +32,7 @@ librarian::shelf(here, cmdstanr, mrmr, bayesplot, posterior, tidyverse)
 ## Create required datasets
 
 ```{r mrmr_datasets}
-captures <- read_csv(here("data", "clean", "20135_capture.csv"))
+captures <- read_csv(here("data", "clean", "20135_capture.csv")) # should I have used 20135_bd_capture.csv instead? Check. 
 surveys <- read_csv(here("data", "clean", "20135_survey.csv"))
 translocations <- read_csv(here("data", "clean", "20135_reintroduction.csv"))
 ```
