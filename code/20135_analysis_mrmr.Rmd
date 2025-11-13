@@ -73,6 +73,14 @@ model_20135 <- read_rds(here("out", "model", "20135_model.rds"))
 
 ## Evaluate convergence of the MCMC algorithm
 
+- alpha_lamda: Baseline (intercept) of the recruitment process. In a Jolly-Seber model, recruitment (entry of new individuals into the population) in each primary period is modeled using a log link or logit link.
+For instance, if log⁡(λt )=αλ+ϵλ, then alpha_lambda is the overall mean log recruitment rate across time period.
+- sigma_lamda: Standard deviation of temporal random effects on recruitment (ε_λ,t). Therefore, sigma_lamda describes variability in recruitment through time. 
+- beta_phi[1]: Intercept (baseline effect) for survival probability (φ). Survival is typically modeled on the logit scale: logit(ϕi,t)=βϕ,1+βϕ,2⋅Treatmenti+ϵϕ,t. beta_phi[1] is the average (logit-scale) survival for the reference group — typically "unexposed".
+- beta_phi[2]: Treatment effect on survival probability. Continuing from beta_phi[1] above, beta_phi[2] modifies the baseline logit of survival for the treatment group (e.g., Bd-exposed vs. unexposed). Positive versus negative values indicate that the treatment increased or decreased survival, respectively. 
+- sigma_phi: Standard deviation of temporal random effects on survival (ε_φ,t). Captures variability in survival between time periods.
+- beta_detect[1]: Intercept (baseline effect) for detection probability (p). Represents the average log-odds of detecting an individual per secondary period, in the baseline group (e.g., unexposed).
+
 ```{r mrmr_convergence}
 # Traceplots
 pars_to_plot <- c("alpha_lambda", 
@@ -188,7 +196,7 @@ ggplot(beta_df, aes(x = beta_treatment)) +
 
 ```
 
-## Custom plots of cohort survival by treatment group - rstan version
+## Custom plots of cohort survival by treatment group
 
 - Plot cohort survival by treatment group, with 95% credible intervals and lines/points on the posterior median.
 
