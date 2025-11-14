@@ -1,0 +1,495 @@
+---
+title: "22008 - Create datasets for analysis using *mrmr*"
+author: "Roland Knapp"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+This notebook creates the survey, capture, and translocation files for use in analyzing capture-mark-recapture data using the *mrmr* package. The code retrieves data from the PostgreSQL amphibians database, runs error checks, and creates the relevant files in *mrmr* format. A treatment column is included in the reintroduction file (exposed, unexposed) and in the capture file (wild, exposed, unexposed) for inclusion as survival covariates. 
+
+Users without credentials to access the database will not be able to create or use the raw data file that is central to this notebook. See cmr-analysis/README.md for details. 
+
+Note that data from the most recent field season may not yet be appended to tables in the amphibians database. If these recently-collected data are necessary (e.g., for preliminary analyses), complete datasets can be created by copying code chunks in "fulcrum_data_append.Rmd" into this notebook and executing all code chunks. 
+
+## Load packages
+
+```{r load_packages}
+if (!require(librarian)){
+  install.packages("librarian")
+  library(librarian)
+}
+librarian::shelf(DBI, config, here, readr, connections, dplyr, tidyr, stringr, magrittr, lubridate, assertthat)
+```
+
+## Connect to database
+
+- Before running this code chunk, establish connection to database server (via VPN or SSH)
+
+```{r db_connect}
+# Select configuration of database of interest (connection paramaters for all databases provided in config.yml - in working directory)
+Sys.setenv(R_CONFIG_ACTIVE = "amphibians-eri")
+
+# Using connection_open from connections package shows structure of database tables in Connections pane
+con <- connection_open(RPostgres::Postgres(),
+                       dbname = config::get("dbname"),
+                       host = config::get("host"),
+                       port = config::get("port"),
+                       user = config::get("user"),
+                       password = rstudioapi::askForPassword("password")) # Enter password from password manager ("ERI GRIT Postgres")
+
+# Set search path to schema of interest
+dbExecute(con, "SET search_path TO public")
+
+```
+
+## Retrieve data subsets from PostgreSQL database
+
+### Reintroduction data
+
+```{r reintroduction_data}
+relocate <- tbl(con, "relocate") %>%
+  rename(
+    relocate_comment = comment,
+    relocate_id = id
+  )
+
+relocate_frog <- tbl(con, "relocate_frog") %>%
+  rename(
+    relocate_frog_comment = comment,
+    relocate_frog_id = id
+  )
+
+reintroduction_22008 <- relocate %>%
+  inner_join(relocate_frog, by = "relocate_id") %>%
+  filter(
+    release_siteid1 %in% c(22008, 22019)
+  ) %>%
+  select(
+    release_siteid1,
+    release_date,
+    type,
+    pit_tag_ref,
+    tag_new,
+    length,
+    weight,
+    swab_id,
+    bd_exposure,
+    relocate_comment,
+    relocate_frog_comment
+  ) %>%
+  collect()
+```
+
+Review the reintroduction data subset for potential problems. 
+- tag_new field is empty. 
+
+### Survey data
+
+To allow subsequent checks of whether surveys at which no frogs were captured are recorded as "visual" instead of "cmr", include visual surveys
+
+```{r survey_data}
+visit <- tbl(con, "visit") %>%
+  rename(
+    visit_comment = comment,
+    visit_id = id
+  )
+
+survey <- tbl(con, "survey") %>%
+  rename(
+    survey_comment = comment,
+    survey_id = id
+  )
+
+survey_22008 <- visit %>% 
+  inner_join(survey, by = "visit_id") %>% 
+  filter(
+    site_id %in% c(22008, 22019),
+    survey_type %in% c("cmr", "visual")
+  ) %>% 
+select( 
+  site_id, 
+  visit_date, 
+  visit_status, 
+  survey_type, 
+  description, 
+  survey_quality,
+  wind,
+  sky,
+  duration,
+  visit_comment,
+  survey_comment
+) %>% 
+collect()
+
+survey_22008 <- survey_22008 %>%  # convert ENUM columns to character
+  mutate(across(where(is_pq_enum), as.character))
+
+```
+
+Review the survey data subset for potential problems. 
+- Some surveys with inclement weather, likely worth retaining all surveys regardless. 
+
+### Capture data
+
+```{r capture_data}
+visit <- tbl(con, "visit") %>%
+  rename(
+    visit_id = id
+  )
+
+survey <- tbl(con, "survey") %>%
+  rename(
+    survey_id = id
+  )
+
+capture <- tbl(con, "capture_survey") %>% 
+  rename(
+    capture_survey_comment = comment
+  )
+
+bdload <- tbl(con, "bd_load") %>% 
+  rename(
+    swab_id = sample_id
+  )
+
+capture_22008 <- visit %>% 
+  inner_join(survey, by = "visit_id") %>% 
+  inner_join(capture, by = "survey_id") %>% 
+  left_join(bdload, by = "swab_id") %>% 
+  filter(
+    site_id %in% c(22008, 22019),
+    survey_type == "cmr"
+  ) %>% 
+select( 
+  site_id, 
+  visit_date, 
+  visit_status, 
+  survey_type, 
+  pit_tag_ref, 
+  tag_new, 
+  species, 
+  capture_life_stage, 
+  capture_animal_state, 
+  length,
+  swab_id,
+  replicate,
+  std_type,
+  dilution,
+  bd_load,
+  capture_survey_comment
+) %>% 
+collect()
+
+capture_22008 <- capture_22008 %>%  # convert ENUM columns to character
+  mutate(across(where(is_pq_enum), as.character))
+```
+
+Review the capture data subset for potential problems. 
+- At 22008, only 1 frog captured in 2022 survey. Was this a true CMR or only captured tagged frogs? Truncate dataset?
+- qPCR used gblock and plasmid standards, all samples run singly.
+
+## Save raw data files
+
+```{r save_raw_data, message=FALSE}
+reintroduction_22008 %>% 
+  write_csv(here::here("data", "raw", "22008_reintroduction_raw.csv"))
+
+survey_22008 %>% 
+  write_csv(here::here("data", "raw", "22008_survey_raw.csv"))
+
+capture_22008 %>% 
+  write_csv(here::here("data", "raw", "22008_capture_raw.csv"))
+```
+
+## Disconnect from database 
+
+```{r db_disconnect}
+connection_close(con) 
+rm(con)
+```
+
+## Read in raw data files (if necessary)
+
+```{r read_raw_data, eval=FALSE, message=FALSE}
+# Change to eval=TRUE
+reintroduction_22008 <- read_csv(here("data", "raw", "22008_reintroduction_raw.csv")) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref))
+
+survey_22008 <- read_csv(here("data", "raw", "22008_survey_raw.csv"))
+
+capture_22008 <- read_csv(here("data", "raw", "22008_capture_raw.csv")) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref))
+```
+
+## Clean reintroduction data
+
+Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved. Run lines of code one at a time to allow easy evaluation of messages and outputs. 
+
+### Reintroduction data checks
+
+```{r reintroduction_data_checks, message=FALSE}
+# Check for records where pit_tag_ref is NULL
+assert_that(noNA(reintroduction_22008$pit_tag_ref))
+
+# Check for records where bd_exposure is NULL
+assert_that(noNA(reintroduction_22008$bd_exposure))
+
+# Check for records containing pit tags shorter than 15 characters (or 9 for early sites)
+assert_that(!any(str_length(reintroduction_22008$pit_tag_ref) != 15))
+
+# Check for records containing pit tags that end with ".1" (known to be potentially incorrect) 
+assert_that(!any(str_detect(reintroduction_22008$pit_tag_ref, "\\.1$")))
+
+# Check for type != "reintroduction"
+assert_that(all(reintroduction_22008$type == "reintroduction"))
+
+# Check for frogs that died during reintroduction
+assert_that(!any(str_detect(reintroduction_22008$relocate_frog_comment, "dead|died")))
+
+# Check for duplicate pit tags on each date
+assert_that(!any(reintroduction_22008 %>% count(release_date, pit_tag_ref) %>% pull(n) > 1))
+
+# Are release dates correct?
+reintroduction_22008 %>% distinct(release_date) %>% glimpse()
+```
+
+### Update reintroduction data
+
+```{r update_reintroduction_data}
+# No updates to make
+```
+
+### Create final reintroduction dataset formatted for mrmr
+
+```{r final_reintroduction_data}
+reintroduction_22008_mrmr <- reintroduction_22008 %>% 
+  rename(pit_tag_id = pit_tag_ref,
+         site_id = release_siteid1,
+         treatment = bd_exposure) %>% 
+  arrange(release_date, pit_tag_id) %>% 
+  select(site_id, type, release_date, pit_tag_id, treatment)
+```
+
+### Save final reintroduction data
+
+```{r save_final_reintroduction_data, message=FALSE}
+reintroduction_22008_mrmr %>% write_csv(here("data", "clean", "22008_reintroduction.csv"))
+```
+
+### Read in cleaned reintroduction data (if necessary)
+
+```{r read_cleaned_reintroduction_data, eval=FALSE, message=FALSE}
+reintroduction_22008 <- read_csv(here::here("data", "clean", "22008_reintroduction.csv")) %>% 
+  mutate(pit_tag_id = as.character(pit_tag_id))
+```
+
+## Clean survey dataset
+
+### Review cmr survey history for all sites in project area
+
+```{r} 
+cmr_survey_check <- survey_22008 %>% 
+  filter(survey_type == "cmr",
+         visit_date >= "2016-01-01") %>% # Include CMR surveys from before 2016 but before first reintroduction (tagging of wild frogs), kept those conducted before and soon after frogs were reintroduced because captures included wild frogs
+  distinct(visit_date) %>%
+  arrange(visit_date) %>%
+  mutate(primary_period = cumsum(visit_date - lag(visit_date, default = first(visit_date)) > 5) + 1) %>% # Identify primary periods based on a gap between CMR surveys of > 5 days
+  inner_join(survey_22008, by = "visit_date") %>% 
+  filter(survey_type == "cmr") %>% 
+  select(site_id, primary_period) %>% 
+  group_by(primary_period) %>% 
+  count(site_id) %>% 
+  mutate(num_sec_periods = max(n), # of times each site was visited during primary period
+         diff = num_sec_periods - n) # difference between number of secondary periods and the number of visits to each site
+```
+
+- Primary site 22008 surveyed during each secondary period, 22019 visited less frequently in most primary periods. 
+
+### Identify VES with no associated CMR period for possible inclusion as a CMR survey - customize for each site
+
+```{r}
+# For each primary period, create all dates in period +/- 2 days
+cmr_dates <- survey_22008 %>% 
+  filter(survey_type == "cmr",
+         visit_date > min(reintroduction_22008$release_date) + days(5)) %>% # Remove CMR surveys from before or soon after frogs were first reintroduced
+  distinct(visit_date) %>%
+  arrange(visit_date) %>%
+  mutate(primary_period = cumsum(visit_date - lag(visit_date, default = first(visit_date)) > 5) + 1) %>% # Identify primary periods based on a gap between CMR surveys of > 1 day
+  group_by(primary_period) %>%
+  summarise(  # buffer primary periods by 2 days at start and end
+    start = min(visit_date) - days(2),
+    end   = max(visit_date) + days(2),
+    .groups = "drop"
+  ) %>%
+  rowwise() %>% 
+  mutate(visit_date = list(seq.Date(start, end, by = "day"))) %>%  # Create all dates in each expanded period
+  unnest(visit_date) %>%
+  select(primary_period, visit_date)
+
+# Select VES dates
+ves_dates <- survey_22008 %>%
+  filter(
+    survey_type == "visual",
+    visit_date > min(reintroduction_22008$release_date + days(5)), # Remove VES surveys from before or soon after frogs were first reintroduced
+    visit_date <= max(cmr_dates$visit_date)
+  ) %>% 
+  select(visit_date) %>% 
+  arrange(visit_date)
+
+# Identify all visual surveys that fall outside of CMR primary periods (expanded)
+unmatched_ves <- ves_dates %>% 
+  anti_join(cmr_dates, by = "visit_date") %>% 
+  distinct(visit_date)
+```
+
+- If no adult frogs found during unmatched VES, consider including as CMR survey.
+- Unmatched VES on 2016-08-11 in which no adult frogs were captured, but CMR surveys were conducted 8-14 to 8-16. No justification to include this VES.
+
+### Remove unneeded objects
+
+```{r}
+rm(cmr_survey_check, cmr_dates, ves_dates, unmatched_ves)
+```
+
+### Remove visual surveys from survey records
+
+```{r remove_visual_surveys}
+survey_22008 <- survey_22008 %>% 
+  filter(survey_type == "cmr", 
+         visit_date >= "2016-01-01") %>% # Remove CMR surveys from before 2016
+  rename(survey_date = visit_date)
+```
+
+- Review records for potential problematic surveys, for example, based on comment fields and fields describing current conditions.
+  - Cold conditions during at least some secondary periods of 2022 survey. Consider dropping these
+
+### Select unique survey dates
+
+```{r unique_survey_dates}
+survey_22008_mrmr <- survey_22008 %>% 
+  distinct(survey_date, survey_type, visit_status)
+```
+
+### Survey data checks
+
+```{r survey_data_checks}
+# Check for duplicate survey dates
+assert_that(!any(survey_22008_mrmr %>% count(survey_date) %>% pull(n) > 1))
+
+# Check for sites that were unsuitable for survey
+assert_that(all(survey_22008_mrmr$visit_status == "suitable"))
+
+# Check for non-cmr and non-reintroduction survey types
+assert_that(all(survey_22008_mrmr$survey_type == "cmr"))
+```
+
+### To meet mrmr format requirement, add reintroduction dates as surveys
+
+```{r add_reintroductions}
+survey_22008_mrmr <- reintroduction_22008_mrmr %>% 
+  distinct(release_date, type) %>% 
+  rename(survey_type = type, 
+         survey_date = release_date) %>% 
+  bind_rows(survey_22008_mrmr) %>% 
+  mutate(site_id = 22008) %>%  # assign all surveys to primary site
+  relocate(site_id, .before = survey_date) %>% 
+  arrange(survey_date) 
+```
+
+### Assign primary and secondary periods FIX THIS TO ALWAYS ASSIGN REINTRODUCTION SURVEYS THEIR OWN PERIOD
+
+```{r assign_cmr_periods}
+survey_22008_mrmr <- survey_22008_mrmr %>%
+  arrange(survey_date) %>% 
+  # Create a flag for "forced" breaks: gap > 4 days OR survey_type == "reintroduction"
+  mutate(gap_break = (survey_date - lag(survey_date, default = first(survey_date)) > 4),
+    reintr_break = lag(survey_type == "reintroduction", default = FALSE),
+    primary_period = cumsum(gap_break | reintr_break) + 1) %>%   
+  # Assign secondary periods within each primary period
+  group_by(primary_period) %>%
+  mutate(secondary_period = row_number()) %>%
+  ungroup() %>% 
+  mutate(secondary_period = replace(secondary_period, survey_type == "reintroduction", 0)) %>% 
+  select(-visit_status)
+```
+
+### Save cleaned survey file
+
+```{r save_cleaned_survey_data}
+survey_22008_mrmr %>% write_csv(here("data", "clean", "22008_survey.csv"))
+```
+
+## Clean capture dataset
+
+### Capture data checks
+
+```{r capture_data_checks, message=FALSE}
+# Verify that all dates in capture are present in survey 
+assert_that(nrow(capture_22008 %>% anti_join(survey_22008_mrmr, by = join_by(visit_date == survey_date))) == 0)
+
+# Verify that visit_status is "suitable" for all records
+assert_that(all(capture_22008$visit_status == "suitable"))
+
+# Verify that survey_type is "cmr" for all records
+assert_that(all(capture_22008$survey_type == "cmr"))
+
+# Check for records where pit_tag_ref is NULL
+assert_that(noNA(capture_22008$pit_tag_ref))
+
+# Check for records containing pit tags shorter than 15 characters (or 9 for early sites)
+assert_that(!any(nchar(capture_22008$pit_tag_ref) != 15))
+
+# Check for records containing pit tags that end with ".1" (known to be potentially incorrect) 
+assert_that(!any(str_detect(capture_22008$pit_tag_ref, "\\.1$")))
+
+# Check for records where species != ramu
+assert_that(all(capture_22008$species == "ramu"))
+
+# Check for records where capture_animal_state is NULL
+assert_that(noNA(capture_22008$capture_animal_state))
+
+# Check for records where capture_animal_state == "dead"
+assert_that(!any(capture_22008$capture_animal_state == "dead"))
+
+# Check for records of subadult frogs 
+assert_that(all(capture_22008$length >= 40)) # 1 captured frog is < 40 mm, but was retained
+
+# Check for duplicate pit tags on each date
+assert_that(nrow(capture_22008 %>% count(visit_date, pit_tag_ref) %>% filter(n > 1)) == 0)
+```
+
+### Clean capture data
+```{r clean_capture_data}
+# Drop dead frogs
+capture_22008 <- capture_22008 %>% 
+  filter(capture_animal_state != "dead")
+```
+
+### Create final capture dataset formatted for mrmr
+```{r final_capture_data}
+capture_22008_mrmr <- capture_22008 %>%
+  rename(survey_date = visit_date, 
+         pit_tag_id = pit_tag_ref) %>%
+  mutate(site_id == 22008) %>%  # assign all captures to primary site
+  select(site_id, survey_date, pit_tag_id, bd_load) %>% 
+  left_join(reintroduction_22008_mrmr %>% 
+              select(pit_tag_id, treatment),
+            by = "pit_tag_id") %>% 
+  mutate(treatment = replace_na(treatment, "wild")) %>% 
+  arrange(survey_date, pit_tag_id)
+```
+
+### Save cleaned capture data (one file with Bd load and one without)
+```{r save_cleaned_capture_data}
+capture_22008_mrmr %>% write_csv(here("data", "clean", "22008_bd_capture.csv"))
+capture_22008_mrmr %>% select(-bd_load) %>% write_csv(here("data", "clean", "22008_capture.csv"))
+```
+
+
+
+
+
+
+
+
