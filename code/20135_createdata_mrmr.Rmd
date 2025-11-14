@@ -6,7 +6,7 @@ editor_options:
   chunk_output_type: inline
 ---
 
-This notebook creates the survey, capture, and translocation files for use in analyzing capture-mark-recapture data using the *mrmr* package. The code retrieves data from the PostgreSQL amphibians database, runs error checks, and creates the relevant files in *mrmr* format. 
+This notebook creates the survey, capture, and translocation files for use in analyzing capture-mark-recapture data using the *mrmr* package. The code retrieves data from the PostgreSQL amphibians database, runs error checks, and creates the relevant files in *mrmr* format. A treatment column is included in the reintroduction file (exposed, unexposed) for inclusion as a survival covariate. 
 
 Users without credentials to access the database will not be able to create or use the raw data file that is central to this notebook. See cmr-analysis/README.md for details. 
 
@@ -24,9 +24,9 @@ librarian::shelf(DBI, config, here, readr, connections, dplyr, tidyr, stringr, m
 
 ## Connect to database
 
-```{r db_connect}
-# Before running this code chunk, establish connection to database server (via VPN or SSH)
+- # Before running this code chunk, establish connection to database server (via VPN or SSH)
 
+```{r db_connect}
 # Select configuration of database of interest (connection paramaters for all databases provided in config.yml - in working directory)
 Sys.setenv(R_CONFIG_ACTIVE = "amphibians-eri")
 
@@ -122,6 +122,9 @@ select(
   survey_comment
 ) %>% 
 collect()
+
+survey_20135 <- survey_20135 %>%  # convert ENUM columns to character
+  mutate(across(where(is_pq_enum), as.character))
 ```
 
 Review the survey data subset for potential problems. 
@@ -130,7 +133,7 @@ Review the survey data subset for potential problems.
 
 ### Capture data
 
-```{r}
+```{r capture_data}
 visit <- tbl(con, "visit") %>%
   rename(
     visit_id = id
@@ -178,6 +181,9 @@ select(
   capture_survey_comment
 ) %>% 
 collect()
+
+capture_20135 <- capture_20135 %>%  # convert ENUM columns to character
+  mutate(across(where(is_pq_enum), as.character))
 ```
 
 Review the capture data subset for potential problems. 
@@ -199,7 +205,7 @@ capture_20135 %>%
 
 ## Disconnect from database 
 
-```{r}
+```{r db_disconnect}
 connection_close(con) 
 rm(con)
 ```
@@ -297,7 +303,7 @@ cmr_survey_check <- survey_20135 %>%
          visit_date > min(reintroduction_20135$release_date) + days(5)) %>% # Remove CMR surveys from before or soon after frogs were reintroduced
   distinct(visit_date) %>%
   arrange(visit_date) %>%
-  mutate(primary_period = cumsum(visit_date - lag(visit_date, default = first(visit_date)) > 5) + 1) %>% # Identify primary periods based on a gap between CMR surveys of > 1 day
+  mutate(primary_period = cumsum(visit_date - lag(visit_date, default = first(visit_date)) > 5) + 1) %>% # Identify primary periods based on a gap between CMR surveys of > 5 days
   inner_join(survey_20135, by = "visit_date") %>% 
   filter(survey_type == "cmr") %>% 
   select(site_id, primary_period) %>% 
