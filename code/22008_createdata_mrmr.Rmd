@@ -397,12 +397,12 @@ survey_22008_mrmr <- reintroduction_22008_mrmr %>%
   arrange(survey_date) 
 ```
 
-### Assign primary and secondary periods FIX THIS TO ALWAYS ASSIGN REINTRODUCTION SURVEYS THEIR OWN PERIOD
+### Assign primary and secondary periods
 
 ```{r assign_cmr_periods}
 survey_22008_mrmr <- survey_22008_mrmr %>%
   arrange(survey_date) %>% 
-  # Create a flag for "forced" breaks: gap > 4 days OR survey_type == "reintroduction"
+  # Create a flag for breaks between surveys: gap > 4 days OR survey_type == "reintroduction"
   mutate(gap_break = (survey_date - lag(survey_date, default = first(survey_date)) > 4),
     reintr_break = lag(survey_type == "reintroduction", default = FALSE),
     primary_period = cumsum(gap_break | reintr_break) + 1) %>%   
