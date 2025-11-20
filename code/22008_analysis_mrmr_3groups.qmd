@@ -38,7 +38,7 @@ surveys <- read_csv(here("data", "clean", "22008_survey.csv"))
 translocations <- read_csv(here("data", "clean", "22008_reintroduction.csv"))
 ```
 
-### Specify model formula and check data
+## Specify model formula and check data
 
 ```{r mrmr_model_formula}
 data_22008 <- clean_data(captures, surveys, translocations,
@@ -55,7 +55,7 @@ data_22008$survival_covariate_df <-
     )
 ```
 
-### Fit model
+## Fit model
 
 ```{r mrmr_fit_model}
 # Used default of 1000 iterations for warmup and 1000 iterations for sampling
@@ -70,19 +70,19 @@ model_22008 <- fit_model(
 )
 ```
 
-### Save model object
+## Save model object
 
 ```{r}
 model_22008 %>% write_rds(here("out", "model", "22008_model_3groups.rds"), "xz", compression = 9L)
 ```
 
-### Read model objects back in (as necessary)
+## Read model objects back in (as necessary)
 
 ```{r eval=FALSE}
 model_22008 <- read_rds(here("out", "model", "22008_model_3groups.rds"))
 ```
 
-### Evaluate convergence of the MCMC algorithm
+## Evaluate convergence of the MCMC algorithm
 
 - alpha_lamda: Baseline (intercept) of the recruitment process. In a Jolly-Seber model, recruitment (entry of new individuals into the population) in each primary period is modeled using a log link or logit link.
 For instance, if log⁡(λt )=αλ+ϵλ, then alpha_lambda is the overall mean log recruitment rate across time period.
@@ -108,7 +108,7 @@ model_22008$m_fit$summary(pars_to_plot)
 
 - alpha_lamda and sigma_lamda but show divergent chains and Rhat > 1.01. 
 
-### Built-in visualizations
+## Built-in visualizations
 
 ```{r mrmr_visualizations}
 plot_model(model_22008, what = "abundance")
@@ -116,7 +116,7 @@ plot_model(model_22008, what = "recruitment")
 plot_model(model_22008, what = "survival")
 ```
 
-### Compare posterior estimates for survival: wild vs. Bd-exposed vs. unexposed individudals
+## Compare posterior estimates for survival: wild vs. Bd-exposed vs. unexposed individudals
 
 - rstan saves the survival value as phi. In contrast, cmdstanr stores the components of the survival variable: beta_phi[1] = intercept, beta_phi[2] = treatment_effect, and eps_phi[1:13] = time (primary period) random effects. The following code calculates phi from these components. 
 
@@ -172,11 +172,22 @@ dimnames(phi_array) <- list(
 )
 
 # Combine and tidy for plotting
-survival_df <- reshape2::melt(
+# survival_df <- reshape2::melt(
+#   phi_array,
+#   varnames = c("iteration", "primary_period", "treatment"),
+#   value.name = "phi"
+# ) %>% as_tibble()
+
+survival_df <- as.data.frame.table(
   phi_array,
-  varnames = c("iteration", "primary_period", "treatment"),
-  value.name = "phi"
-) %>% as_tibble()
+  responseName = "phi"
+) %>%
+  as_tibble() %>%
+  rename(
+    iteration = Var1,
+    primary_period = Var2,
+    treatment = Var3
+  )
 
 # Merge with survey metadata (e.g., survey_date)
 survival_df <- survival_df %>%
@@ -205,7 +216,7 @@ cat("Posterior probability that wild frogs had higher survival than unexposed:",
 - Posterior probability that treatment increased survival: 0.179. That is, 18% of the posterior draws had a positive effect and 82% had a negative effect. Therefore, there is a 18% posterior probability that the treatment increased survival. 
 - Posterior probability that survival of wild frogs was higher than unexposed frogs: 0.016. That is, 2% of draws positive effect and 98% had a negative effect. Therefore, there is a 98% posterior probability that survival of wild frogs was less than that of unexposed frogs.
 
-### Plot the posterior distribution of the treatment effect
+## Plot the posterior distribution of the treatment effect
 
 ```{r}
 # Extract posterior treatment effects
@@ -234,7 +245,7 @@ ggplot(beta_df, aes(x = beta)) +
 
 ```
 
-### Custom plots of cohort survival by treatment group
+## Custom plots of cohort survival by treatment group
 
 - Plot cohort survival by treatment group, with 95% credible intervals and lines/points on the posterior median.
 
@@ -319,7 +330,7 @@ p1
 - These cohort-specific results are not directly comparable to the global, treatment-level regression coefficients (posterior probabilities).
 - Cohort-specific survival trajectories can look different from expectations from posterior probabilities because they depend on sample sizes, timing, shrinkage, and detection. 
 
-### Posterior median survival probability (phi) by treatment group
+## Posterior median survival probability (phi) by treatment group
 
 - This is the most direct and interpretable comparison of survival between groups.
 - Values come from the regression parameters (beta_phi), the random year/period effects (eps_phi), and do not depend on detection or imputed alive/dead states.
@@ -356,7 +367,7 @@ ggplot(plot_df1_long, aes(x = phi, fill = treatment)) +
   ggtitle("Posterior survival probability φ by treatment group")
 ```
 
-### Arrange survival, abundance, and recruitment plots
+## Arrange survival, abundance, and recruitment plots
 
 ```{r}
 # survival plot
@@ -382,7 +393,7 @@ p1 / p2 / p3 +
 ggsave(here("out", "plots", "22008_mrmr_plots_treatment.png"), width = 6.5, height = 7.2)
 ```
 
-### Quick model check
+## Quick model check
 
 - If the treatment increased survival, then in 2018 and 2019, we should have seen a greater proportion of treated than untreated frogs from the initial translocation.
 
@@ -406,7 +417,7 @@ captures %>%
 - Our null expectation is that we should see approximately 71% exposed and 29% unexposed individuals based on the proportions of frogs in each category in this first translocation.
 - For each survey, we see a somewhat larger fraction of exposed individuals than expected based on our null expectation.
 
-### Posterior predictive cumulative survival curves
+## Posterior predictive cumulative survival curves
 
 ```{r}
 # sanity

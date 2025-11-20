@@ -4,19 +4,18 @@ author: "Roland Knapp"
 output: html
 ---
 Analysis of Tyndall Pond CMR dataset - Tyndall area
-- "treatment" covariate is included in translocation and capture files to evaluate survival of zoo-raised Bd-exposed versus unexposed frogs
+- "treatment" covariate is included in translocation file to evaluate survival of zoo-raised Bd-exposed versus unexposed frogs
 
-## Install mrmr package if current version is not available
+## Install packages from GitHub if current versions are not available
 
-```{r install_mrmr}
+```{r install_remote}
+# mrmr
 remotes::install_github("SNARL1/mrmr")
-```
 
-## Install cmdstanr package if current version is not available
-
-```{r}
+# cmdstanr
 install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
 cmdstanr::install_cmdstan()
+
 ```
 
 ## Load packages
@@ -26,13 +25,13 @@ if (!require(librarian)){
   install.packages("librarian")
   library(librarian)
 }
-librarian::shelf(here, cmdstanr, mrmr, bayesplot, posterior, tidyverse, reshape2, abind)
+librarian::shelf(here, cmdstanr, mrmr, bayesplot, posterior, tidyverse, abind)
 ```
 
 ## Create required datasets
 
 ```{r mrmr_datasets}
-captures <- read_csv(here("data", "clean", "22008_capture.csv")) %>% filter(treatment != "wild")  # Remove wild group
+captures <- read_csv(here("data", "clean", "22008_capture.csv")) %>% select(-treatment) 
 surveys <- read_csv(here("data", "clean", "22008_survey.csv"))
 translocations <- read_csv(here("data", "clean", "22008_reintroduction.csv"))
 ```
@@ -157,11 +156,22 @@ dimnames(phi_array) <- list(
 )
 
 # Combine and tidy for plotting
-survival_df <- reshape2::melt(
+# survival_df <- reshape2::melt(
+#   phi_array,
+#   varnames = c("iteration", "primary_period", "treatment"),
+#   value.name = "phi"
+# ) %>% as_tibble()
+
+survival_df <- as.data.frame.table(
   phi_array,
-  varnames = c("iteration", "primary_period", "treatment"),
-  value.name = "phi"
-) %>% as_tibble()
+  responseName = "phi"
+) %>%
+  as_tibble() %>%
+  rename(
+    iteration = Var1,
+    primary_period = Var2,
+    treatment = Var3
+  )
 
 # Merge with survey metadata (e.g., survey_date)
 survival_df <- survival_df %>%
