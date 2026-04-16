@@ -76,6 +76,9 @@ model_54188 <- fit_model(
 
 ```{r write-model}
 write_rds(model_54188, here::here("out", "model", "54188_model.rds"), "xz", compression = 9L)
+
+# reload the model if you've been away:
+# model_54188 <- read_rds(here::here("out", "model", "54188_model.rds"))
 ```
 
 - To read model file, use "model_54188 <- read_rds(here::here("out", "model", "54188_model.rds"))"

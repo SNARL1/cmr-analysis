@@ -119,7 +119,7 @@ select
 from visit
 inner join survey on visit.id = visit_id
 inner join capture_survey on survey.id = survey_id
-where site_id in (10114, 11886, 11889) and
+where site_id in (10114, 11886, 11889, 11887) and
       survey_type = 'cmr'
 ```
 
@@ -379,6 +379,12 @@ setdiff(survey_10114$survey_date, capture_10114$visit_date) %>% as.Date(origin =
 ```{r clean-capture-data}
 capture_10114 <- capture_10114 %>% 
   filter(capture_animal_state != "dead")
+```
+
+- tentatively recode all captures to occur at 10114
+```{r clean-capture-data}
+capture_10114 <- capture_10114 %>% 
+  mutate(site_id = 10114)
 ```
 
 ### Create final capture dataset formatted for mrmr
