@@ -10,7 +10,7 @@ Roland A. Knapp (roland.knapp(at)ucsb.edu) [![ORCiD](https://img.shields.io/badg
 
 This repository is organized as a reproducible research compendium, and focuses on actions conducted to recover populations of the endangered [mountain yellow-legged frog](https://www.fws.gov/sites/default/files/documents/Mountain-Yellow-Legged-Frog-Conservation-Strategy.pdf).
 Specifically, it contains data from capture-mark-recapture (CMR) surveys conducted on translocated, reintroduced, and donor populations (e.g., [Joseph and Knapp 2018](https://doi.org/10.1002/ecs2.2499)), the code to analyze the survey data using [R](https://www.r-project.org/), and a notebook that summarizes the results-to-date for each population.
-Results from many of these analyses are included in a manuscript (submitted) that describes the establishment dynamics of frog populations following translocations.
+Results from many of these analyses are included in [Knapp et al. (2024)](https://doi.org/10.1038/s41467-024-53608-4) that describes the establishment dynamics of frog populations following translocations.
 Throughout this repository, frog populations are referenced only by 5-digit unique site identifiers.
 No site names or x-y coordinates are provided to protect these sensitive populations to the maximum extent possible.
 

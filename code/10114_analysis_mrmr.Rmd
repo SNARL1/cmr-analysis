@@ -59,7 +59,8 @@ model_10114 <- fit_model(
                     chains = 4, 
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
-                    threads_per_chain = 2) 
+                    threads_per_chain = 2, 
+                    adapt_delta = 0.8) 
 
 
 ```
@@ -152,4 +153,3 @@ survival_ind
 survival_cohort %>% write_csv(here::here("out", "tables", "10114_survival_cohort.csv"))
 survival_ind %>% write_csv(here::here("out", "tables", "10114_survival_ind.csv"))
 ```
-

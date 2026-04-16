@@ -14,11 +14,10 @@ Before using the code in this file, replace all instances of "xxxxx" with the 5-
 - Run only if updated versions were released since previous install.  
 ```{r install-stan-mrmr-packages}
 # install cmdstanr and cmdstan
-install.packages("Rtools43")
-install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-cmdstanr::install_cmdstan()
+remotes::install_github("stan-dev/cmdstanr")
+cmdstanr::install_cmdstan(overwrite = TRUE)
 
-# install mrmr
+# install mrmr and mrmrmr
 remotes::install_github("SNARL1/mrmr")
 ```
 
@@ -48,8 +47,6 @@ translocations <- read_csv(here::here("data", "clean", "50183_reintroduction.csv
 ```
 
 ## Check datasets
-
-- Remove "translocations" file if translocations/reintroductions are not relevant
 
 ```{r check-data}
 data_50183 <- clean_data(captures = captures, surveys = surveys, translocations = translocations)
@@ -138,7 +135,7 @@ ggsave(here::here("out", "plots", "50183_mrmr_plots.png"), width = 6.5, height =
 
 ## Create survival tables
 
-- Calculated for translocated/reintroduced frogs only, so skip if translocations/reintroductions are not relevant. SKIPPED
+- Calculated for translocated/reintroduced frogs only, so skip if translocations/reintroductions are not relevant. 
 - Only the cohort-level survival table is displayed because the individual-level survival table can be large.  
 
 ```{r survival-tables}

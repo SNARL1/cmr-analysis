@@ -1,0 +1,504 @@
+---
+title: "22008 - Analysis of CMR data using *mrmr* - 2 treatment groups"
+author: "Roland Knapp"
+output: html
+---
+Analysis of Tyndall Pond CMR dataset - Tyndall area
+- "treatment" covariate is included in translocation file to evaluate survival of zoo-raised Bd-exposed versus unexposed frogs
+
+## Install packages from GitHub if current versions are not available
+
+```{r install_remote}
+# mrmr
+remotes::install_github("SNARL1/mrmr")
+
+# cmdstanr
+install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
+cmdstanr::install_cmdstan()
+
+```
+
+## Load packages
+
+```{r load_packages}
+if (!require(librarian)){
+  install.packages("librarian")
+  library(librarian)
+}
+librarian::shelf(here, cmdstanr, mrmr, bayesplot, posterior, tidyverse, abind)
+```
+
+## Create required datasets
+
+```{r mrmr_datasets}
+captures <- read_csv(here("data", "clean", "22008_capture.csv")) %>% select(-treatment) 
+surveys <- read_csv(here("data", "clean", "22008_survey.csv"))
+translocations <- read_csv(here("data", "clean", "22008_reintroduction.csv"))
+```
+
+### Specify model formula and check data
+
+```{r mrmr_model_formula}
+data_22008 <- clean_data(captures, surveys, translocations,
+                                survival_formula = ~ treatment,
+                                survival_fill_value = c(treatment = "unexposed")) 
+```
+
+### Fit model
+
+```{r mrmr_fit_model}
+# Used default of 1000 iterations for warmup and 1000 iterations for sampling
+# "threads per chain" option and "cpp_options" did not speed up fit_model step
+model_22008 <- fit_model(
+  data_22008, 
+  chains = 4,
+  parallel_chains = 4
+  ) 
+```
+
+### Save model object
+
+```{r}
+model_22008 %>% write_rds(here("out", "model", "22008_model_2groups.rds"), "xz", compression = 9L)
+```
+
+### Read model objects back in (as necessary)
+
+```{r eval=FALSE}
+model_22008 <- read_rds(here("out", "model", "22008_model_2groups.rds"))
+```
+
+### Evaluate convergence of the MCMC algorithm
+
+- alpha_lamda: Baseline (intercept) of the recruitment process. In a Jolly-Seber model, recruitment (entry of new individuals into the population) in each primary period is modeled using a log link or logit link.
+For instance, if log⁡(λt )=αλ+ϵλ, then alpha_lambda is the overall mean log recruitment rate across time period.
+- sigma_lamda: Standard deviation of temporal random effects on recruitment (ε_λ,t). Therefore, sigma_lamda describes variability in recruitment through time. 
+- beta_phi[1]: Intercept (baseline effect) for survival probability (φ). Survival is typically modeled on the logit scale: logit(ϕi,t)=βϕ,1+βϕ,2⋅Treatmenti+ϵϕ,t. beta_phi[1] is the average (logit-scale) survival for the reference group — typically "unexposed".
+- beta_phi[2]: Treatment effect on survival probability. Continuing from beta_phi[1] above, beta_phi[2] modifies the baseline logit of survival for the treatment group (e.g., Bd-exposed vs. unexposed). Positive versus negative values indicate that the treatment increased or decreased survival, respectively. 
+- sigma_phi: Standard deviation of temporal random effects on survival (ε_φ,t). Captures variability in survival between time periods.
+- beta_detect[1]: Intercept (baseline effect) for detection probability (p). Represents the average log-odds of detecting an individual per secondary period, in the baseline group (e.g., unexposed).
+
+```{r mrmr_convergence}
+# Traceplots
+pars_to_plot <- c("alpha_lambda", 
+                  "sigma_lambda", 
+                  "beta_phi", 
+                  "sigma_phi", 
+                  "beta_detect")
+
+mcmc_trace(model_22008$m_fit$draws(pars_to_plot))
+
+# Summary statistics, include Rhat (any Rhat > 1.01?)
+model_22008$m_fit$summary(pars_to_plot)
+```
+
+### Built-in visualizations
+
+```{r mrmr_visualizations}
+plot_model(model_22008, what = "abundance")
+plot_model(model_22008, what = "recruitment")
+plot_model(model_22008, what = "survival")
+```
+
+### Compare posterior estimates for survival: Bd-exposed vs. unexposed individudals
+
+- rstan saves the survival value as phi. In contrast, cmdstanr stores the components of the survival variable: beta_phi[1] = intercept, beta_phi[2] = treatment_effect, and eps_phi[1:13] = time (primary period) random effects. The following code calculates phi from these components. 
+
+```{r}
+# Extract phi components directly from cmdstanr fit
+beta_phi_mat <- posterior::as_draws_matrix(model_22008$m_fit$draws("beta_phi"))
+eps_phi_mat  <- posterior::as_draws_matrix(model_22008$m_fit$draws("eps_phi"))
+
+# Dimensions
+n_draws   <- nrow(beta_phi_mat)
+n_periods <- ncol(eps_phi_mat)
+
+# Make sure treatment is a factor with "unexposed" as reference
+data_22008$survival_covariate_df$treatment <- 
+  factor(data_22008$survival_covariate_df$treatment, levels = c("unexposed", "exposed"))
+
+treatment_levels <- levels(data_22008$survival_covariate_df$treatment)
+
+# Compute posterior phi for each treatment (vectorized)
+phi_list <- vector("list", length(treatment_levels))
+names(phi_list) <- treatment_levels
+
+for (i in seq_along(treatment_levels)) {
+  treatment <- treatment_levels[i]
+  
+  # Determine which columns of beta_phi_mat correspond to the treatment effect
+  # Intercept = unexposed
+  treat_idx <- match(treatment, treatment_levels)
+  
+  # Create matrices for vectorized addition
+  intercept_mat <- matrix(beta_phi_mat[,1], nrow = n_draws, ncol = n_periods)
+  
+  # Treatment effects: exposed = beta_phi[,2], unexposed = 0
+  if (treatment == "unexposed") {
+    treatment_mat <- matrix(0, nrow = n_draws, ncol = n_periods)
+  } else {
+    treatment_mat <- matrix(beta_phi_mat[, treat_idx], nrow = n_draws, ncol = n_periods)
+  }
+  
+  # Compute logit(phi) = intercept + treatment effect + random effect
+  logit_phi <- intercept_mat + treatment_mat + eps_phi_mat
+  
+  # Convert to probability
+  phi_list[[treatment]] <- plogis(logit_phi)
+}
+
+# Combine into 3D array: draws × periods × treatment
+phi_array <- abind::abind(phi_list, along = 3)
+dimnames(phi_array) <- list(
+  iteration = NULL,
+  primary_period = 1:n_periods,
+  treatment = treatment_levels
+)
+
+# Combine and tidy for plotting
+# survival_df <- reshape2::melt(
+#   phi_array,
+#   varnames = c("iteration", "primary_period", "treatment"),
+#   value.name = "phi"
+# ) %>% as_tibble()
+
+survival_df <- as.data.frame.table(
+  phi_array,
+  responseName = "phi"
+) %>%
+  as_tibble() %>%
+  rename(
+    iteration = Var1,
+    primary_period = Var2,
+    treatment = Var3
+  )
+
+# Merge with survey metadata (e.g., survey_date)
+survival_df <- survival_df %>%
+  left_join(
+    data_22008$surveys %>% filter(secondary_period < 2),
+    by = "primary_period"
+  )
+
+# Plot posterior survival densities
+ggplot(survival_df, aes(x = phi, color = treatment)) +
+  stat_density(geom = "line") +
+  facet_wrap(~ survey_date, scales = "free_y") +
+  xlab("Survival probability") +
+  ylab("Posterior density") +
+  scale_color_discrete("Treatment")
+
+# Posterior probabilities of survival differences between groups 
+p_exposed_gt_unexposed <- mean(beta_phi_mat[, 2] > 0)
+
+cat("Posterior probability that Bd exposure increased survival vs unexposed:",
+    p_exposed_gt_unexposed, "\n")
+```
+
+- Posterior probability that treatment increased survival: 0.144. That is, 14% of the posterior draws had a positive effect and 86% had a negative effect. Therefore, there is a 14% posterior probability that the treatment increased survival. 
+
+### Plot the posterior distribution of the treatment effect
+
+```{r}
+# Extract posterior treatment effects
+beta_exposed  <- as.numeric(beta_phi_mat[, "beta_phi[2]"])   # exposed vs unexposed
+
+# Put into a tidy data frame
+beta_df <- tibble(
+  `Exposed − Unexposed` = beta_exposed
+) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "comparison",
+    values_to = "beta"
+  )
+
+# Plot
+ggplot(beta_df, aes(x = beta)) +
+  geom_density(fill = "skyblue", alpha = 0.5) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  facet_wrap(~ comparison, scales = "free") +
+  xlab("Posterior effect size (logit scale)") +
+  ylab("Density") +
+  ggtitle("Posterior distributions of pairwise survival differences\n(logit-scale treatment effects)")
+
+```
+
+### Custom plots of cohort survival by treatment group
+
+- Plot cohort survival by treatment group, with 95% credible intervals and lines/points on the posterior median.
+
+```{r}
+# --- Build helper objects used by the plot -----------------
+# primary period -> first survey date and year
+primary_period_dates <- model_22008$data$surveys %>%
+  group_by(primary_period) %>%
+  summarize(
+    date = min(survey_date),
+    year = min(year),
+    .groups = "drop"
+  )
+
+# translocation release dates per individual (one row per pit_tag_id)
+transloc_dates <- model_22008$data$translocations %>%
+  distinct(pit_tag_id, release_date)
+
+# --- Main pipeline: compute fraction alive by draw, summarize, and plot ---
+p1 <- model_22008$m_fit$draws('s', format = "draws_df") %>%
+  tidyr::pivot_longer(tidyselect::starts_with('s')) %>%
+  # get_numeric_indices() is a helper from mrmr; if not available replace with your function
+  mutate(get_numeric_indices(name)) %>%
+  rename(primary_period = index_2) %>% 
+  # map index_1 -> pit_tag_id (ensure indexing matches your model dims)
+  mutate(pit_tag_id = dimnames(model_22008$data$stan_d$Y)[[1]][index_1]) %>%
+  # keep only reintroduced individuals
+  filter(pit_tag_id %in% as.character(model_22008$data$translocations$pit_tag_id)) %>%
+  # add release_date for each pit_tag_id
+  left_join(transloc_dates, by = "pit_tag_id") %>%
+  # add treatment info for each individual (ensure by = "pit_tag_id")
+  left_join(model_22008$data$survival_covariate_df, by = "pit_tag_id") %>%
+  
+  # compute fraction alive per draw + period + treatment + release cohort
+  group_by(release_date, primary_period, .draw, treatment) %>%
+  summarize(fraction_alive = mean(value == 2), .groups = "drop") %>%
+  
+  # remove primary period 1 if you don't want it (keeps periods > 1)
+  filter(primary_period > 1) %>%
+  
+  # add survey dates for plotting, and keep only dates on/after release
+  left_join(primary_period_dates, by = "primary_period") %>%
+  filter(date >= release_date) %>%
+  
+  # summarize across posterior draws to get median and 95% CI per date/treatment/release
+  group_by(release_date, date, treatment) %>%
+  summarize(
+    lo  = quantile(fraction_alive, probs = 0.025),
+    med = median(fraction_alive),
+    hi  = quantile(fraction_alive, probs = 0.975),
+    .groups = "drop"
+  ) %>%
+  
+  # prettify labels
+  mutate(
+    treatment = tools::toTitleCase(as.character(treatment)),
+    facet_lab = paste("Released on", release_date)
+  ) %>%
+  
+  # plot treatments, faceted by release cohort
+  ggplot(aes(x = date, y = med, color = treatment, fill = treatment, group = treatment)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.30, color = NA) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.5) +
+  facet_wrap(~ facet_lab, ncol = 1) +
+  ylab("Fraction surviving") +
+  xlab("Date") +
+  scale_color_brewer("Treatment", palette = "Dark2") +
+  scale_fill_brewer("Treatment", palette = "Dark2") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  ggtitle("A. Survival of reintroduced frogs") +
+  theme_bw() +
+  theme(
+    legend.position = c(0.75, 0.85),
+    legend.background = element_rect(fill = alpha("white", 0.8))
+  )
+
+# print plot
+p1
+
+```
+- These cohort-specific results are not directly comparable to the global, treatment-level regression coefficients (posterior probabilities).
+- Cohort-specific survival trajectories can look different from expectations from posterior probabilities because they depend on sample sizes, timing, shrinkage, and detection. 
+
+### Posterior median survival probability (phi) by treatment group
+
+- This is the most direct and interpretable comparison of survival between groups.
+- Values come from the regression parameters (beta_phi), the random year/period effects (eps_phi), and do not depend on detection or imputed alive/dead states.
+
+```{r}
+# collapse eps over time (average across periods)
+eps_phi_vec <- rowMeans(eps_phi_mat)
+
+# compute logit(phi) for each treatment
+phi_unexp  <- beta_phi_mat[,1] + eps_phi_vec
+phi_exposed <- beta_phi_mat[,1] + beta_phi_mat[,2] + eps_phi_vec
+
+# assemble into tidy data frame
+plot_df1 <- tibble(
+  draw = 1:nrow(beta_phi_mat),
+  unexposed = plogis(phi_unexp),
+  exposed   = plogis(phi_exposed)
+)
+
+plot_df1_long <- plot_df1 %>%
+  pivot_longer(cols = -draw, names_to = "treatment", values_to = "phi")
+
+# plot posterior distributions for all three treatments
+library(viridis)
+
+ggplot(plot_df1_long, aes(x = phi, fill = treatment)) +
+  geom_density(alpha = 0.4) +
+  scale_fill_viridis(discrete = TRUE, option = "C") +
+  theme_bw() +
+  xlab("Survival probability (φ)") +
+  ylab("Posterior density") +
+  ggtitle("Posterior survival probability φ by treatment group")
+```
+
+### Arrange survival, abundance, and recruitment plots
+
+```{r}
+# survival plot
+p1 <- p1 +
+#  guides(fill = guide_legend(nrow = 1)) + 
+  theme(legend.position = "right")
+
+# abundance plot
+p2 <- plot_model(model_22008, what = "abundance") 
+p2 <- p2 + ggtitle("B. Population size") +
+    ylab("Number of adults")
+
+# recruitment plot
+p3 <- plot_model(model_22008, what = "recruitment")
+p3 <- p3 + ggtitle("C. Recruitment") +
+    ylab("Number of adults")
+
+library(patchwork) 
+
+p1 / p2 / p3 +
+  plot_layout(heights = c(3, 1, 1))
+
+ggsave(here("out", "plots", "22008_mrmr_plots_treatment.png"), width = 6.5, height = 7.2)
+```
+
+### Quick model check
+
+- If the treatment increased survival, then in 2018 and 2019, we should have seen a greater proportion of treated than untreated frogs from the initial translocation.
+
+```{r}
+cohort_transloc <- translocations %>%
+  filter(release_date == as.Date("2016-07-18"))
+
+count(cohort_transloc, treatment) %>%
+  mutate(frac = n / sum(n))
+  
+captures %>%
+  inner_join(translocations, by = "pit_tag_id") %>% 
+  select(survey_date, pit_tag_id, treatment) %>% 
+  filter(survey_date > as.Date("2018-01-01"), 
+         pit_tag_id %in% cohort_transloc$pit_tag_id) %>%
+  group_by(survey_date) %>%
+  count(treatment) %>%
+  mutate(frac = n / sum(n))
+```
+
+- Our null expectation is that we should see approximately 71% exposed and 29% unexposed individuals based on the proportions of frogs in each category in this first translocation.
+- For each survey, we see a somewhat larger fraction of exposed individuals than expected based on our null expectation.
+
+### Posterior predictive cumulative survival curves
+
+```{r}
+# helper objects 
+n_draws   <- nrow(beta_phi_mat)
+n_periods <- ncol(eps_phi_mat)
+
+# create primary_period -> date table if available
+if (!exists("primary_period_dates")) {
+  if (!is.null(model_22008$data$surveys)) {
+    primary_period_dates <- model_22008$data$surveys %>%
+      group_by(primary_period) %>%
+      summarize(date = min(survey_date), .groups = "drop")
+  } else {
+    primary_period_dates <- tibble(primary_period = 1:n_periods)
+  }
+}
+
+# treatments and corresponding beta column indices
+treatments <- c("unexposed", "exposed")
+beta_idx <- c(unexposed = 1, exposed = 2)
+
+# function to compute cumulative survival per draw × period for a given treatment
+compute_cum_surv <- function(beta_col_index) {
+  # replicate intercept and treatment effect across periods (matrices n_draws x n_periods)
+  intercept_mat <- matrix(beta_phi_mat[, 1], nrow = n_draws, ncol = n_periods)
+  treat_mat     <- matrix(0, nrow = n_draws, ncol = n_periods)
+  if (!is.null(beta_col_index) && beta_col_index > 1) {
+    treat_mat <- matrix(beta_phi_mat[, beta_col_index], nrow = n_draws, ncol = n_periods)
+  }
+  # eps_phi_mat already n_draws x n_periods
+  logit_phi_mat <- intercept_mat + treat_mat + eps_phi_mat
+
+  # convert to probability
+  phi_mat <- plogis(logit_phi_mat)           # matrix: draw × period
+
+  # compute cumulative survival across periods for each draw
+  # each row is a draw; cumprod along columns
+  cumphi_mat <- t(apply(phi_mat, 1, cumprod)) # still draw × period
+
+  # convert to long tibble: draw, period, cum_surv
+  tibble(
+    draw = rep(1:n_draws, times = n_periods),
+    period = rep(1:n_periods, each = n_draws),
+    cum_surv = as.vector(cumphi_mat)
+  )
+}
+
+# compute for each treatment and bind
+list_of_dfs <- lapply(treatments, function(trt) {
+  df <- compute_cum_surv(beta_idx[[trt]])
+  df$treatment <- trt
+  df
+})
+cum_surv_df <- bind_rows(list_of_dfs)
+
+# Summarize across draws: median and 95% CI per treatment × period
+cum_surv_summ <- cum_surv_df %>%
+  group_by(treatment, period) %>%
+  summarize(
+    lo  = quantile(cum_surv, probs = 0.025),
+    med = median(cum_surv),
+    hi  = quantile(cum_surv, probs = 0.975),
+    .groups = "drop"
+  ) %>%
+  # attach dates if available
+  left_join(primary_period_dates, by = c("period" = "primary_period")) %>%
+  mutate(x = if ("date" %in% colnames(.)) date else period,
+         treatment = tools::toTitleCase(treatment))
+
+# Plot: cumulative survival through time (period or date on x-axis)
+# --- release cohort table (unique release dates) ---
+release_cohorts <- model_22008$data$translocations %>%
+  distinct(release_date) %>%
+  arrange(release_date) %>%
+  mutate(release_label = paste("Released on", release_date))
+
+# --- attach release cohort to cumulative survival summaries ---
+cum_surv_summ_facet <- cum_surv_summ %>%
+  crossing(release_cohorts) %>%   # Cartesian join: each treatment gets curves for each release cohort
+  mutate(treatment = tools::toTitleCase(treatment))
+
+# --- plot, faceting by release cohort ---
+ggplot(cum_surv_summ_facet,
+       aes(x = x, y = med, color = treatment, fill = treatment)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi),
+              alpha = 0.25, color = NA) +
+  geom_line(size = 1) +
+  geom_point(size = 1.5) +
+  scale_color_viridis_d(option = "C") +
+  scale_fill_viridis_d(option = "C") +
+  theme_bw() +
+  xlab(ifelse("date" %in% colnames(cum_surv_summ_facet),
+              "Date", "Primary period")) +
+  ylab("Cumulative survival (model-predicted)") +
+  ggtitle("Posterior predictive cumulative survival curves by treatment\nFaceted by release cohort") +
+  facet_wrap(~ release_label, ncol = 1) +
+  theme(legend.position = "bottom")
+```
+
+
+
+
+
+
+
+
+

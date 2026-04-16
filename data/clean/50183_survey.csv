@@ -12,3 +12,7 @@ site_id,survey_date,survey_type,primary_period,secondary_period
 50183,2024-09-06,cmr,7,1
 50183,2024-09-07,cmr,7,2
 50183,2024-09-08,cmr,7,3
+50183,2025-07-03,cmr,8,1
+50183,2025-07-04,cmr,8,2
+50183,2025-07-05,cmr,8,3
+50183,2025-07-06,reintroduction,9,0

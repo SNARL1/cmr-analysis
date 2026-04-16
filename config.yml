@@ -1,0 +1,35 @@
+default:
+  host: localhost
+  port: 5432
+  dbname : slip
+  user: rknapp
+  
+slip-local:
+  host: localhost
+  port: 5432
+  dbname: slip
+  user: rknapp
+
+slip-eri:
+  host: localhost
+  port: 25432
+  dbname: slip
+  user: rknapp
+  
+amphibians-eri:
+  host: localhost
+  port: 25432
+  dbname: amphibians
+  user: rknapp
+ 
+qpcr-eri:
+  host: localhost
+  port: 25432
+  dbname: qpcr
+  user: rknapp
+  
+ribbitr:
+  host: ribbitr.c6p56tuocn5n.us-west-1.rds.amazonaws.com
+  port: 5432
+  dbname: ribbitr
+  user: rolandknapp

@@ -1,0 +1,184 @@
+---
+title: "Methods to explore the Bayesian posterior"
+author: "Roland A. Knapp"
+format: html
+editor: source
+---
+
+## Load packages
+
+```{r load_packages}
+if (!require(librarian)){
+  install.packages("librarian")
+  library(librarian)
+}
+librarian::shelf(cmdstanr, mrmr, readr, here, posterior, tidyverse, reshape2, abind)
+```
+
+## Explore posterior
+
+```{r}
+library(posterior)
+library(dplyr)
+
+model_22008 <- read_rds(here("out", "model", "22008_model_2groups.rds"))
+
+class(model_22008)
+str(model_22008)
+
+# 3D array: iterations × chains × parameters
+draws_array <- model_22008$m_fit$draws()
+
+# Check dimensions
+dim(draws_array)
+
+# Extract only parameters for survival coefficients (\beta_phi[1], beta_phi[2], etc.)
+surv_draws <- model_22008$m_fit$draws(variables = c("beta_phi"))
+
+# Convert to tidy data frame
+post_df <- as_draws_df(surv_draws)
+
+colnames(post_df)
+
+# Summarize specific posterior parameters
+
+posterior::summarise_draws(post_df %>% select("beta_phi[1]"))
+
+# Extract all parameter names from the CmdStanMCMC fit (if there are many parameters, use next line of code for summary)
+all_params <- posterior::variables(model_22008$m_fit$draws())
+
+# Extract prefix (everything before "[") for grouping
+param_df <- tibble(parameter = all_params) %>%
+  mutate(prefix = sub("\\[.*\\]", "", parameter))  # removes indices like [1], [2]
+
+# Summarize: count and show first few examples per prefix
+param_summary <- param_df %>%
+  group_by(prefix) %>%
+  summarise(
+    count = n(),
+    examples = paste(head(parameter, 5), collapse = ", ")
+  ) %>%
+  arrange(desc(count))
+
+param_summary
+
+```
+
+## Definitions of typical parameters from mrmr/cmdstanr fit object
+
+```{r}
+library(tibble)
+library(knitr)
+
+# Create the table
+param_table <- tibble(
+  Prefix = c("s", "logit_detect", "eps_lambda", "eps_phi", "lambda", "B",
+             "N", "beta_phi", "Nsuper", "alpha_lambda", "beta_detect",
+             "lp__", "sigma_lambda", "sigma_phi"),
+  Description = c(
+    "Latent alive/dead state",
+    "Linear predictor for detection probability (logit scale)",
+    "Random effect for recruitment rate (lambda)",
+    "Random effect for survival probability (phi)",
+    "Recruitment or introduction rate",
+    "Regression coefficients for recruitment covariates",
+    "Estimated population size",
+    "Regression coefficients for survival (logit scale)",
+    "Superpopulation size (augmented individuals)",
+    "Baseline recruitment rate (hierarchical mean)",
+    "Regression coefficients for detection probability (logit scale)",
+    "Log posterior density (Stan internal)",
+    "SD of recruitment random effects",
+    "SD of survival random effects"
+  )
+)
+
+# Display nicely
+knitr::kable(param_table, caption = "Summary of Posterior Parameter Prefixes")
+
+```
+
+## Survival probabilities by treatment group
+
+### Extract posterior draws for survival coefficients
+
+```{r}
+draws_array <- model_22008$m_fit$draws()  # 3D array: iterations × chains × parameters
+
+post_df <- as_draws_df(draws_array)
+
+beta_phi_post <- post_df %>% 
+  select(starts_with("beta_phi"))
+
+colnames(beta_phi_post)
+```
+
+### Identify which coefficient corresponds to which treatment
+
+```{r}
+# colnames(model.matrix(~ treatment, data = data_22008$survival_covariate_df))
+
+```
+
+-   Column names are "Intercept" and "treatmentexposed". That indicates the following:
+    -   beta_phi\[1\] = intercept = survival for the baseline group (unexposed)
+    -   beta_phi\[2\] = effect of treatment = exposed relative to the baseline
+-   Model formula incidates the same, without having to read from data_22008.
+
+### Compute survival probabilities
+
+```{r}
+# For convenience
+beta1 <- beta_phi_post$`beta_phi[1]`   # Intercept (unexposed reference level)
+beta2 <- beta_phi_post$`beta_phi[2]`   # Effect of exposed
+
+# Survival probabilities
+phi_unexposed <- plogis(beta1)
+phi_exposed <- plogis(beta1 + beta2)
+
+```
+
+-   beta_phi parameters on logit scale (= log-odds scale), plogis converts log-odds into survival probabilities
+-   beta_phi\[1\] = logit(survival of unexposed, the baseline)
+-   beta_phi\[2\] = log-odds difference for "exposed" relative to unexposed: beta_phi\[1\] + beta_phi\[2\]
+
+### Put results in tidy dataframe
+
+```{r}
+surv_probs <- tibble(
+  exposed = phi_exposed,
+  unexposed = phi_unexposed
+) %>%
+  pivot_longer(everything(), names_to = "treatment", values_to = "phi")
+
+head(surv_probs)
+
+```
+
+### Plot posterior survival distributions
+
+```{r}
+ggplot(surv_probs, aes(x = phi, fill = treatment)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    x = "Survival probability",
+    y = "Posterior density",
+    title = "Posterior Distribution of Survival by Treatment"
+  ) +
+  theme_minimal()
+
+```
+
+### Posterior difference (exposed - exposed)
+
+```{r}
+diff_exposed_unexposed <- phi_exposed - phi_unexposed
+
+mean(diff_exposed_unexposed)
+quantile(diff_exposed_unexposed, c(0.025, 0.5, 0.975))
+
+```
+
+-   On average, across the posterior, exposed frogs have \~5.7% lower survival probability than exposed frogs.
+-   Interpretation of Bayesian credible interval: Given the model and data, there is a 95% probability that the true difference in survival (exposed – unexposed) lies between –18.6% and +4.4%.
+-   The most likely difference is a small negative effect (exposed survive slightly worse). However, the credible interval overlaps zero, so the data do not strongly support either a real decrease in survival from exposure, or a real increase.
