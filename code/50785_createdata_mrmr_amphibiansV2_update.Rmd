@@ -124,10 +124,10 @@ select
   release_frog.swab_id, 
   release_frog.bd_exposure
 from release_frog
-INNER JOIN visit_release ON release_frog.visit_release_id = visit_release.visit_release_id
-INNER JOIN visit ON visit_release.visit_id = visit.visit_id
-LEFT JOIN release ON visit_release.release_id = release.release_id
+INNER JOIN release ON release_frog.release_id = release.release_id
+INNER JOIN visit ON release.visit_id = visit.visit_id
 WHERE visit.site_id = 50785 
+
 ```
 
 ```{r disconnect-when-all-data-acquired, message=FALSE, echo=FALSE}
