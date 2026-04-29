@@ -579,19 +579,7 @@ capture_50785_mrmr_Bd %>% write_csv(here::here("data", "clean", "50785_capture_b
 
 <!--  Next steps:
 
-1. create Bd load at each capture
-- go back to data creation step above.
-- add loads from Bd_load view to capture records.
-- save separate data file from the standard, most simple capture records as indicated by the files for Ranger/Tyndall
-- COMPLETE 4/17 5:39pm
-
-2. create zoo exposure history
-- go back to data creation step above.
-- add exposure status to reintroduction
-- save separate data file from the standard, most simple capture records as indicated by the files for Ranger/Tyndall
-- COMPLETE 4/17 11:20am
-
-3. create zoo exposure load trajectories
+create zoo exposure load trajectories
 - this is somewhat of a separate project and probably a separate script and effort
 
 --> 
