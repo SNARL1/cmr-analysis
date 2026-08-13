@@ -1,8 +1,7 @@
 ---
 title: "22008 - Create datasets for analysis using *mrmr* - 2 treatment groups"
 author: "Roland Knapp"
-format: 
-  html:
+format: html
 editor_options: 
   chunk_output_type: inline
 ---
@@ -16,11 +15,6 @@ Note that data from the most recent field season may not yet be appended to tabl
 ## Setup
 
 ```{r}
-#| eval: true
-#| output: false
-#| code-fold: true
-#| code-summary: "Packages"
-
 # Install packages from remote - if necessary
 remotes::install_github("SNARL1/pgutils")
 
@@ -32,26 +26,18 @@ if (!require(librarian)){
 librarian::shelf(here, readr, dplyr, tidyr, stringr, magrittr, lubridate, assertthat)
 ```
 
-## Connect to database
-
-Before running this code chunk, establish connection to database server (via VPN or SSH)
-
-```{r}
-#| eval: true
-#| output: false
-#| code-fold: true
-#| code-summary: "Packages"
-
-con <- pgutils::connect_to_pg()
-```
-
 ## Retrieve data subsets from PostgreSQL database
 
-- Before retrieving data, view table in Connections pane to determine presence of columns formatted as "pq_xxxx". If any exist, add code after "collect()" to format as character.
+- Before running this code chunk, establish connection to database server (via VPN or SSH)
+- Any database columns formatted as "enum" will return a data type = "pq_xxxx". If any exist, use "pgutils::convert_pg_enum" to format as character.
 
 ### Reintroduction data
 
-```{r reintroduction_data}
+```{r}
+# Connect to database
+con <- pgutils::connect_to_pg()
+
+# Retrieve reintroduction data
 relocate <- tbl(con, "relocate") %>%
   rename(
     relocate_comment = comment,
@@ -92,7 +78,7 @@ Review the reintroduction data subset for potential problems.
 
 To allow subsequent checks of whether surveys at which no frogs were captured are recorded as "visual" instead of "cmr", include visual surveys
 
-```{r survey_data}
+```{r}
 visit <- tbl(con, "visit") %>%
   rename(
     visit_comment = comment,
@@ -128,7 +114,6 @@ collect()
 
 # convert ENUM columns to character
 survey_22008 <- pgutils::convert_pg_enums(survey_22008) 
-  
 ```
 
 Review the survey data subset for potential problems. 
@@ -136,7 +121,7 @@ Review the survey data subset for potential problems.
 
 ### Capture data
 
-```{r capture_data}
+```{r}
 visit <- tbl(con, "visit") %>%
   rename(
     visit_id = id
@@ -193,7 +178,7 @@ Review the capture data subset for potential problems.
 
 ## Save raw data files
 
-```{r save_raw_data, message=FALSE}
+```{r}
 reintroduction_22008 %>% 
   write_csv(here::here("data", "raw", "22008_reintroduction_raw.csv"))
 
@@ -215,7 +200,7 @@ rm(con)
 
 ## Read in raw data files (if necessary)
 
-```{r read_raw_data, eval=FALSE, message=FALSE}
+```{r}
 # Change to eval=TRUE
 reintroduction_22008 <- read_csv(here("data", "raw", "22008_reintroduction_raw.csv")) %>% 
   mutate(pit_tag_ref = as.character(pit_tag_ref))
@@ -232,7 +217,7 @@ Run checks before and after data cleaning (next code chunk) to ensure that all i
 
 ### Reintroduction data checks
 
-```{r reintroduction_data_checks, message=FALSE}
+```{r}
 # Check for records where pit_tag_ref is NULL
 see_if(noNA(reintroduction_22008$pit_tag_ref))
 
@@ -260,13 +245,13 @@ reintroduction_22008 %>% distinct(release_date) %>% glimpse()
 
 ### Update reintroduction data
 
-```{r update_reintroduction_data}
+```{r}
 # No updates to make
 ```
 
 ### Create final reintroduction dataset formatted for mrmr
 
-```{r final_reintroduction_data}
+```{r}
 reintroduction_22008_mrmr <- reintroduction_22008 %>% 
   rename(pit_tag_id = pit_tag_ref,
          site_id = release_siteid1,
@@ -277,13 +262,13 @@ reintroduction_22008_mrmr <- reintroduction_22008 %>%
 
 ### Save final reintroduction data
 
-```{r save_final_reintroduction_data, message=FALSE}
+```{r}
 reintroduction_22008_mrmr %>% write_csv(here("data", "clean", "22008_reintroduction_2groups.csv"))
 ```
 
 ### Read in cleaned reintroduction data (if necessary)
 
-```{r read_cleaned_reintroduction_data, eval=FALSE, message=FALSE}
+```{r}
 reintroduction_22008 <- read_csv(here::here("data", "clean", "22008_reintroduction_2groups.csv")) %>% 
   mutate(pit_tag_id = as.character(pit_tag_id))
 ```
@@ -360,7 +345,7 @@ rm(cmr_survey_check, cmr_dates, ves_dates, unmatched_ves)
 
 ### Remove irrelevant surveys from survey records
 
-```{r remove_visual_surveys}
+```{r}
 survey_22008_mrmr <- survey_22008 %>% 
   filter(survey_type == "cmr", 
          visit_date > min(reintroduction_22008$release_date)) %>% 
@@ -372,14 +357,14 @@ survey_22008_mrmr <- survey_22008 %>%
 
 ### Select unique survey dates
 
-```{r unique_survey_dates}
+```{r}
 survey_22008_mrmr <- survey_22008_mrmr %>% 
   distinct(survey_date, survey_type, visit_status)
 ```
 
 ### Survey data checks
 
-```{r survey_data_checks}
+```{r}
 # Check for duplicate survey dates
 see_if(!any(survey_22008_mrmr %>% count(survey_date) %>% pull(n) > 1))
 
@@ -392,7 +377,7 @@ see_if(all(survey_22008_mrmr$survey_type == "cmr"))
 
 ### To meet mrmr format requirement, add reintroduction dates as surveys
 
-```{r add_reintroductions}
+```{r}
 survey_22008_mrmr <- reintroduction_22008_mrmr %>% 
   distinct(release_date, type) %>% 
   rename(survey_type = type, 
@@ -405,7 +390,7 @@ survey_22008_mrmr <- reintroduction_22008_mrmr %>%
 
 ### Assign primary and secondary periods
 
-```{r assign_cmr_periods}
+```{r}
 survey_22008_mrmr <- survey_22008_mrmr %>% 
   arrange(survey_date) %>% 
   # Create a flag for breaks between surveys: gap > 4 days OR survey_type == "reintroduction"
@@ -422,7 +407,7 @@ survey_22008_mrmr <- survey_22008_mrmr %>%
 
 ### Save cleaned survey file
 
-```{r save_cleaned_survey_data}
+```{r}
 survey_22008_mrmr %>% write_csv(here("data", "clean", "22008_survey_2groups.csv"))
 ```
 
@@ -430,7 +415,7 @@ survey_22008_mrmr %>% write_csv(here("data", "clean", "22008_survey_2groups.csv"
 
 ### Capture data checks
 
-```{r capture_data_checks, message=FALSE}
+```{r}
 # Verify that all dates in capture are present in survey 
 see_if(nrow(capture_22008 %>% anti_join(survey_22008_mrmr, by = join_by(visit_date == survey_date))) == 0)
 
@@ -467,7 +452,7 @@ see_if(nrow(capture_22008 %>% count(visit_date, pit_tag_ref) %>% filter(n > 1)) 
 
 ### Clean capture data
 
-```{r clean_capture_data}
+```{r}
 # Drop dead frogs
 capture_22008 <- capture_22008 %>% 
   filter(capture_animal_state != "dead")
@@ -477,7 +462,7 @@ capture_22008 <- capture_22008 %>%
 
 ### Create final capture dataset formatted for mrmr
 
-```{r final_capture_data}
+```{r}
 capture_22008_mrmr <- capture_22008 %>%
   rename(survey_date = visit_date, 
          pit_tag_id = pit_tag_ref) %>%
@@ -491,7 +476,7 @@ capture_22008_mrmr <- capture_22008 %>%
 
 ### Save cleaned capture data (one file with Bd load and one without)
 
-```{r save_cleaned_capture_data}
+```{r}
 capture_22008_mrmr %>% write_csv(here("data", "clean", "22008_bd_capture_2groups.csv"))
 capture_22008_mrmr %>% select(-bd_load) %>% write_csv(here("data", "clean", "22008_capture_2groups.csv"))
 ```
