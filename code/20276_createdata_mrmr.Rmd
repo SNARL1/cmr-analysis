@@ -7,11 +7,11 @@ editor_options:
 ---
 ```{r load-packages}
 library(tidyverse)
-library(RPostgreSQL)
 library(lubridate)
 library(assertthat)
 library(DBI)
 library(RPostgres)
+library(RPostgreSQL)
 library(here)
 # options(readr.show_col_types = FALSE)
 ```
@@ -280,7 +280,7 @@ If data are created and up to date, read saved files back in to your session usi
 
 ```{r reintroduction-relevant-columns}
 reintroduction_20276 <- reintroduction_20276 %>% 
-  select(site_id, release_date, type, pit_tag_ref, bd_exposure)
+  select(site_id, release_date, type, pit_tag_id, bd_exposure)
 ```
 
 ### Data checks on reintroductions, surveys, and captures.
@@ -299,7 +299,8 @@ assert_that(!any(nchar(reintroduction_20276$pit_tag_id) != 15))
 assert_that(!any(str_detect(reintroduction_20276$pit_tag_id, "\\.1$")))
 
 # Check for records of subadult frogs
-reintroduction_20276 %>% drop_na(length) %>% filter(length < 40)
+# reintroduction_20276 %>% drop_na(length) %>% filter(length < 40)
+# doesn't include Length
 
 # Check for duplicate pit tags on each date
 reintroduction_20276 %>% count(release_date, pit_tag_id) %>% filter(n > 1)
@@ -369,7 +370,7 @@ survey_20276 <- survey_20276 %>%
 
 - Skip if reintroductions are not relevant.  
 
-```{r add-translocation-surveys}
+```{r add-reintroduction-surveys}
 survey_20276 <- reintroduction_20276 %>% 
   distinct(site_id, release_date, type) %>% 
   rename(survey_type = type, survey_date = release_date) %>% 
