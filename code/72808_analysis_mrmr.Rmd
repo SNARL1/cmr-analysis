@@ -30,8 +30,15 @@ library(patchwork)
 
 ## Create required data frames
 ```{r create-data-objects}
-captures <- read_csv(here::here("data", "72808_capture.csv"))
-surveys <- read_csv(here::here("data", "72808_survey.csv"))
+captures <- read_csv(here::here("data", "clean", "72808_capture.csv"))
+surveys <- read_csv(here::here("data", "clean", "72808_survey.csv"))
+
+### 
+# alternatively, use the non-version controlled 72808 data up to 2026 that ALL created on 8/14, but pulling from the pCloud drive not the SNARL1-github repository
+
+# captures <- read_csv( "P:/MLRG/field_season/within-season-data-needs/72808_capture.csv")
+# surveys <- read_csv( "P:/MLRG/field_season/within-season-data-needs/72808_survey.csv")
+
 ```
 
 ## Check datasets
@@ -49,14 +56,15 @@ model_72808 <- fit_model(
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
                     threads_per_chain = 12, 
-                    dir = "/home/snarg/roland/72808") # to prevent writing to a locked system directory 
+                    adapt_delta = 0.99) # to prevent writing to a locked system directory 
+
 ```
 * Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).
 
 ### Save/retrieve model object
 This step prevents having to rerun the model in the event of a crash during model visualizations in subsequent code blocks. Model files can be large, so this saves the file in a compressed format.
 ```{r write-model}
-write_rds(model_72808, here::here("out", "72808_model.rds"), "xz", compression = 9L)
+write_rds(model_72808, here::here("out", "model", "72808_model.rds"), "xz", compression = 9L)
 ```
 ```{r read-model}
 # model_72808 <- read_rds(here::here("out", "72808_model.rds"))
@@ -65,10 +73,10 @@ write_rds(model_72808, here::here("out", "72808_model.rds"), "xz", compression =
 ### Diagnose potential non-convergence of the MCMC algorithm
 Inspect traceplots and parameter summary table. In table, are any R~hat~ values $\ge 1.01$?
 ```{r model-diagnostics}
-pars_to_plot <- c('alpha_lambda', 
-                  'sigma_lambda', 
-                  'beta_phi', 
-                  'sigma_phi', 
+pars_to_plot <- c('alpha_lambda', # 
+                  'sigma_lambda', # 
+                  'beta_phi', # 
+                  'sigma_phi', # 
                   'beta_detect')
 bayesplot::mcmc_trace(model_72808$m_fit$draws(pars_to_plot))
 
