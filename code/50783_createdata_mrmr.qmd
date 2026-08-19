@@ -1,0 +1,405 @@
+---
+title: "50783 - Create datasets for analysis using *mrmr*"
+author: "Roland Knapp"
+format: html
+editor_options: 
+  chunk_output_type: inline
+---
+
+This notebook creates the survey and capture files for use in analyzing capture-mark-recapture data using the *mrmr* package. No frog translocations or reintroductions were conducted at this site. The code retrieves data from the PostgreSQL amphibians_v2 database and current-year Fulcrum data, runs error checks, and creates the relevant files in *mrmr* format. 
+
+Users without credentials to access the database will not be able to create the raw data files, but can use the saved clean data files for analyses. See cmr-analysis/README.md for details. 
+
+## Setup
+
+```{r}
+# Load installed packages
+if (!require(librarian)){
+  install.packages("librarian")
+  library(librarian)
+}
+librarian::shelf(DBI, here, readr, dplyr, tidyr, stringr, lubridate, assertthat)
+```
+
+- Before running the next code chunk, establish connection to database server (via VPN or SSH)
+
+## Connect to database
+
+```{r}
+# Connect to database
+con <- dbConnect(RPostgres::Postgres(),  
+                 host = "localhost", 
+                 dbname = "amphibians_v2", 
+                 port = 25432, 
+                 user = "rknapp",
+                 password = getPass::getPass("PostgreSQL password for rknapp: "))
+
+# Set default schema
+dbExecute(con, "SET search_path TO field_surveys")
+```
+
+## Retrieve data subsets from PostgreSQL database and Fulcrum
+
+### Survey data
+
+Only CMR surveys are typically conducted at this site, so no need to filter by cmr and ves. 
+
+```{r}
+survey_50783 <- tbl(con, "visit") |>
+  filter(site_id %in% c(50783)) |>
+  inner_join(tbl(con, "survey"), by = "visit_id") |>
+  filter(survey_type %in% c("cmr")) |>
+  select(
+    site_id,
+    visit_date,
+    visit_status,
+    survey_type,
+    description,
+    survey_quality,
+    wind,
+    sky,
+    air_temp,
+    duration,
+    visit_comment,
+    survey_comment
+  ) |>
+  collect() |> 
+  arrange(visit_date, site_id)
+```
+
+Review the survey data subset for potential problems. 
+- Survey on 2022-09-18 has survey_type == cmr, but notes indicate that this survey was for ribbtr sampling only. Drop. 
+
+### Drop non-CMR survey
+
+```{r}
+survey_50783 <- survey_50783 |> 
+  filter_out(visit_date == "2022-09-18")
+```
+
+### Capture data
+
+```{r}
+capture_50783 <- tbl(con, "visit") |>
+  filter(site_id %in% c(50783)) |>
+  inner_join(tbl(con, "survey"), by = "visit_id") |>
+  filter(survey_type == "cmr") |>
+  inner_join(tbl(con, "capture_survey"), by = "survey_id") |>
+  select(
+    site_id,
+    visit_date,
+    visit_status,
+    survey_type,
+    pit_tag_ref,
+    tag_new,
+    species,
+    capture_life_stage,
+    capture_animal_state,
+    length,
+    capture_survey_comment
+  ) |>
+  collect() |> 
+  arrange(visit_date) |> 
+  rename(capture_comment = capture_survey_comment)
+```
+
+Review the capture data subset for potential problems. 
+
+### Remove frogs collected during non-CMR RIBBiTR survey
+
+```{r}
+capture_50783 <- capture_50783 |> 
+  filter_out(visit_date == "2022-09-18")
+```
+
+### Disconnect from database 
+
+```{r db_disconnect}
+dbDisconnect(con)
+rm(con)
+```
+
+- Close SSH connection 
+
+### Create current-year survey and capture datasets for appending
+
+```{r}
+visit_50783_2026 <- read_csv(here("data", "raw", "current_year", "survey_14aug2026.csv")) |> 
+  filter(site_id == 50783) |> 
+  select(fulcrum_id, site_id, visit_date, visit_status, visit_comment) |> 
+  rename(visit_id = fulcrum_id)
+  
+survey_50783_2026 <- read_csv(here("data", "raw", "current_year", "survey_description_14aug2026.csv")) |> 
+  select(fulcrum_record_id, fulcrum_id, survey_type, survey_description, wind, sky, air_temp, duration, survey_quality, general_survey_comment) |> 
+  filter(survey_type == "cmr") |> 
+  rename(description = survey_description, 
+         survey_comment = general_survey_comment,
+         survey_id = fulcrum_id,
+         visit_id = fulcrum_record_id) |> 
+inner_join(visit_50783_2026 |> 
+             select(visit_id), 
+           by = "visit_id")
+
+capture_50783_2026 <- read_csv(here("data", "raw", "current_year", "survey_description_amphibian_capture_14aug2026.csv")) |> 
+  select(fulcrum_parent_id, method, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, capture_comment) |> 
+  filter(method == "cmr") |> 
+  rename(survey_id = fulcrum_parent_id) |> 
+  inner_join(survey_50783_2026 |> 
+               select(survey_id), 
+             by = "survey_id")
+
+survey_append_50783 <- visit_50783_2026 |> 
+  inner_join(survey_50783_2026, by = "visit_id")
+
+capture_append_50783 <- visit_50783_2026 |> 
+  inner_join(survey_50783_2026, by = "visit_id") |> 
+  inner_join(capture_50783_2026, by = "survey_id") |> 
+  select(-visit_id, -survey_id, -description, -survey_quality, -method, -wind, -sky, -air_temp, -duration, -visit_comment, -survey_comment) |> 
+  replace_na(list(species = "ramu", 
+                  capture_life_stage = "adult")) |> 
+  mutate(pit_tag_ref = as.character(pit_tag_ref))
+
+survey_append_50783 <- survey_append_50783 |> 
+  select(-visit_id, -survey_id)
+
+```
+
+### Append current year data to time series
+
+```{r}
+survey_50783 <- bind_rows(survey_50783, survey_append_50783)
+
+capture_50783 <- bind_rows(capture_50783, capture_append_50783)
+```
+
+## Save raw data files
+
+```{r}
+survey_50783 |> 
+  write_csv(here::here("data", "raw", "50783_survey_raw.csv"))
+
+capture_50783 |> 
+  write_csv(here::here("data", "raw", "50783_capture_raw.csv"))
+```
+
+## Read in raw data files (if necessary)
+
+```{r}
+survey_50783 <- read_csv(here("data", "raw", "50783_survey_raw.csv"))
+
+capture_50783 <- read_csv(here("data", "raw", "50783_capture_raw.csv")) |> 
+  mutate(pit_tag_ref = as.character(pit_tag_ref))
+```
+
+## Clean survey dataset
+
+<!-- ### Review cmr survey history for all sites in project area -->
+
+<!-- ```{r}  -->
+<!-- cmr_survey_check <- survey_50783 |>  -->
+<!--   filter(survey_type == "cmr", -->
+<!--          visit_date > min(reintroduction_50783$visit_date)) |>  -->
+<!--   distinct(visit_date) |> -->
+<!--   arrange(visit_date) |> -->
+<!--   mutate(primary_period = cumsum(visit_date - lag(visit_date, default = first(visit_date)) > 5) + 1) |> # Identify primary periods based on a gap between CMR surveys of > 5 days -->
+<!--   inner_join(survey_50783, by = "visit_date") |>  -->
+<!--   filter(survey_type == "cmr") |>  -->
+<!--   select(site_id, primary_period) |>  -->
+<!--   group_by(primary_period) |>  -->
+<!--   count(site_id) |>  -->
+<!--   mutate(num_sec_periods = max(n), # of times each site was visited during primary period -->
+<!--          diff = num_sec_periods - n) |> # difference between number of secondary periods and the number of visits to each site -->
+<!--   relocate(site_id) |>  -->
+<!--   arrange(site_id, primary_period) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- rm(cmr_survey_check) -->
+<!-- ``` -->
+
+<!-- - Primary site 50783 surveyed during each secondary period. No adjacent sites to include. -->
+
+<!-- ### Identify VES with no associated CMR period for possible inclusion as a CMR survey - customize for each site -->
+
+<!-- ```{r} -->
+<!-- # For each primary period, create all dates in period +/- 2 days -->
+<!-- cmr_dates <- survey_50783 |>  -->
+<!--   filter(survey_type == "cmr", -->
+<!--          visit_date > min(reintroduction_50783$visit_date) + days(5)) |> # Remove CMR surveys from before or soon after frogs were first reintroduced -->
+<!--   distinct(visit_date) |> -->
+<!--   arrange(visit_date) |> -->
+<!--   mutate(primary_period = cumsum(visit_date - lag(visit_date, default = first(visit_date)) > 5) + 1) |> # Identify primary periods based on a gap between CMR surveys of > 1 day -->
+<!--   group_by(primary_period) |> -->
+<!--   summarise(  # buffer primary periods by 2 days at start and end -->
+<!--     start = min(visit_date) - days(2), -->
+<!--     end   = max(visit_date) + days(2), -->
+<!--     .groups = "drop" -->
+<!--   ) |> -->
+<!--   rowwise() |>  -->
+<!--   mutate(visit_date = list(seq.Date(start, end, by = "day"))) |>  # Create all dates in each expanded period -->
+<!--   unnest(visit_date) |> -->
+<!--   select(primary_period, visit_date) -->
+
+<!-- # Select VES dates -->
+<!-- ves_dates <- survey_50783 |> -->
+<!--   filter( -->
+<!--     survey_type == "visual", -->
+<!--     visit_date > min(reintroduction_50783$visit_date + days(5)), # Remove VES surveys from before or soon after frogs were first reintroduced -->
+<!--     visit_date <= max(cmr_dates$visit_date) -->
+<!--   ) |>  -->
+<!--   select(visit_date) |>  -->
+<!--   arrange(visit_date) -->
+
+<!-- # Identify all visual surveys that fall outside of CMR primary periods (expanded) -->
+<!-- unmatched_ves <- ves_dates |>  -->
+<!--   anti_join(cmr_dates, by = "visit_date") |>  -->
+<!--   distinct(visit_date) -->
+<!-- ``` -->
+
+<!-- - No unmatched VES. Include only CMR suyrveys. -->
+
+<!-- ### Remove unneeded objects -->
+
+<!-- ```{r} -->
+<!-- rm(cmr_dates, ves_dates, unmatched_ves) -->
+<!-- ``` -->
+
+<!-- ### Remove irrelevant surveys from survey records -->
+
+<!-- ```{r} -->
+<!-- survey_50783_mrmr <- survey_50783 |>  -->
+<!--   filter(survey_type == "cmr",  -->
+<!--          visit_date > min(reintroduction_50783$visit_date)) |>  -->
+<!--   rename(survey_date = visit_date) -->
+<!-- ``` -->
+
+- Review records for potential problematic surveys, for example, based on comment fields and fields describing current conditions.
+- Some non-ideal survey conditions, opted to retain all surveys. 
+
+### Select unique survey dates
+
+```{r}
+survey_50783_mrmr <- survey_50783 |> 
+  rename(survey_date = visit_date) |> 
+  distinct(site_id, survey_date, survey_type, visit_status)
+```
+
+### Survey data checks
+
+```{r}
+# Check for duplicate survey dates
+see_if(!any(survey_50783_mrmr |> count(survey_date) |> pull(n) > 1))
+
+# Check for sites that were unsuitable for survey
+see_if(all(survey_50783_mrmr$visit_status == "suitable"))
+
+# Check for non-cmr and non-reintroduction survey types
+see_if(all(survey_50783_mrmr$survey_type == "cmr"))
+```
+
+### Assign primary and secondary periods
+
+```{r}
+survey_50783_mrmr <- survey_50783_mrmr |> 
+  arrange(survey_date) |> 
+  # Create a flag for breaks between surveys: gap > 4 days
+  mutate(gap_break = (survey_date - lag(survey_date, default = first(survey_date)) > 4),
+    primary_period = cumsum(gap_break) + 1) |>   
+  # Assign secondary periods within each primary period
+  mutate(secondary_period = row_number(), .by = primary_period) |>
+  select(-gap_break, -survey_type, -visit_status)
+```
+
+### Save cleaned survey file
+
+```{r}
+survey_50783_mrmr |> write_csv(here("data", "clean", "50783_survey.csv"))
+```
+
+## Clean capture dataset
+
+### Capture data checks
+
+```{r}
+# Verify that all dates in capture are present in survey 
+see_if(nrow(capture_50783 |> anti_join(survey_50783_mrmr, by = join_by(visit_date == survey_date))) == 0)
+
+# Verify that visit_status is "suitable" for all records
+see_if(all(capture_50783$visit_status == "suitable"))
+
+# Verify that survey_type is "cmr" for all records
+see_if(all(capture_50783$survey_type == "cmr"))
+
+# Check for records where pit_tag_ref is NULL
+see_if(noNA(capture_50783$pit_tag_ref))
+
+# Check for records containing pit tags shorter than 15 characters (or 9 for early sites)
+see_if(!any(nchar(capture_50783$pit_tag_ref) != 15))
+
+# Check for records containing pit tags that end with ".1" (known to be potentially incorrect) 
+see_if(!any(str_detect(capture_50783$pit_tag_ref, "\\.1$")))
+
+# Check for records where species != rasi
+see_if(all(capture_50783$species == "ramu"))
+
+# Check for records where capture_animal_state is NULL
+see_if(noNA(capture_50783$capture_animal_state))
+
+# Check for records where capture_animal_state == "dead"
+see_if(!any(capture_50783$capture_animal_state == "dead"))
+
+# Check for records of subadult frogs 
+see_if(all(capture_50783$length >= 40, na.rm = TRUE)) 
+
+# Check for duplicate pit tags on each date
+see_if(nrow(capture_50783 |> count(visit_date, pit_tag_ref) |> filter(n > 1)) == 0)
+```
+
+### Clean capture data
+
+```{r}
+# Remove frogs with pit_tag_ref == NA
+capture_50783 <- capture_50783 |> 
+  filter_out(is.na(pit_tag_ref))
+
+# Remove pit_tag_refs entered twice on same day
+count <- capture_50783 |> 
+  count(visit_date, pit_tag_ref)
+
+capture_50783 <- capture_50783 |> 
+  inner_join(count, by = c("visit_date", "pit_tag_ref")) |> 
+  mutate(capture_comment = replace_na(capture_comment, "")) |> 
+  filter_out(n > 1 & capture_comment == "") |> 
+  select(-n)
+rm(count)
+
+# Remove record with incorrect pit_tag_ref (based on comments)
+capture_50783 <- capture_50783 %>% 
+  filter(pit_tag_ref != '900067000117595')
+
+# Fix incorrect pit_tag_ref (based on comments and data review)
+capture_50783 <- capture_50783 |> 
+  mutate(pit_tag_ref = replace_values(pit_tag_ref, "900067000114249" ~ "900043000144249"))
+
+```
+
+### Create final capture dataset formatted for mrmr
+
+```{r}
+capture_50783_mrmr <- capture_50783 |>
+  rename(survey_date = visit_date, 
+         pit_tag_id = pit_tag_ref) |>
+  select(site_id, survey_date, pit_tag_id) |> 
+  arrange(survey_date, pit_tag_id)
+```
+
+### Save cleaned capture data (one file with Bd load and one without)
+
+```{r}
+capture_50783_mrmr |> write_csv(here("data", "clean", "50783_capture.csv"))
+```
+
+
+
+
+
