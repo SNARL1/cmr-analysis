@@ -6,7 +6,7 @@ editor_options:
   chunk_output_type: inline
 ---
 
-This script analyzes capture-mark-recapture data using the *mrmr* package. The code creates the required survey, capture, and translocation data frames from saved CSV files (created by xxxxx_createdata_mrmr.Rmd), checks the datasets, fits the model, evaluates potential non-convergence of the MCMC algorithm, and visualizes model results. The code is written to be run on an ERI HPC server ("tong"). 
+This script analyzes capture-mark-recapture data using the *mrmr* package. The code creates the required survey and capture tibbles from saved CSV files (created by xxxxx_createdata_mrmr.qmd), checks the datasets, fits the model, evaluates potential non-convergence of the MCMC algorithm, and visualizes model results. The code is written to be run on a local desktop computer with 8 physical cores and 32 MB of RAM. 
 
 ## Install latest versions of cmdstanr, cmdstan, and mrmr packages
 
@@ -36,8 +36,8 @@ librarian::shelf(here, readr, dplyr, tibble, cmdstanr, mrmr, patchwork)
 ## Create required data frames
 
 ```{r create-data-objects}
-captures <- read_csv(here::here("data","clean", "50783_capture.csv"))
-surveys <- read_csv(here::here("data","clean", "50783_survey.csv"))
+captures <- read_csv(here("data","clean", "50783_capture.csv"))
+surveys <- read_csv(here("data","clean", "50783_survey.csv"))
 ```
 
 ## Check datasets
@@ -48,8 +48,8 @@ data_50783 <- clean_data(captures = captures, surveys = surveys)
 
 ## Fit model
 
-Code assumes that there are 8 physical cores available. Update parallel_chains and threads_per_chain as necessary based on actual number of cores. 
-Add "adapt_delta = 0.99" or similar if divergent transitions occur. Using the "tong" server, the model-fitting process required ~30 minutes. 
+* Code assumes that there are 8 physical cores available. Update parallel_chains and threads_per_chain as necessary based on actual number of cores. (parallel_chains * threads_per_chain) must equal the number of cores. 
+* Add "adapt_delta = 0.99" or similar if divergent transitions occur. 
 
 ```{r fit-model}
 model_50783 <- fit_model(
@@ -58,21 +58,23 @@ model_50783 <- fit_model(
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
                     threads_per_chain = 2, 
-                    adapt_delta = 0.8)
+                    adapt_delta = 0.99)
 
 ```
 
-* Running model with default adapt_delta (0.8) resulted in five divergent transitions (5/4000). Adjusting adapt_delta to 0.99 resulted in 0/4000 divergent transitions. 
+* Using the Roland's local computer, the model-fitting process required ~50 minutes with adapt_delta = 0.8 (default) and 135 minutes with adapt_delta = 0.99. 
+* Running model with default adapt_delta (0.8) resulted in one divergent transition (1/4000). Adjusting adapt_delta to 0.99 resulted in 0/4000 divergent transitions. 
 
 ### Save/retrieve model object
 
 This step prevents having to rerun the model in the event of a crash during model visualizations in subsequent code blocks. Model files can be large, so this saves the file in a compressed format.
 
 ```{r write-model}
-write_rds(model_50783, here::here("out", "50783_model.rds"), "xz", compression = 9L)
+write_rds(model_50783, here("out", "model", "50783_model.rds"), "xz", compression = 9L)
 ```
+
 ```{r read-model}
-model_50783 <- read_rds(here::here("out", "model", "50783_model.rds"))
+model_50783 <- read_rds(here("out", "model", "50783_model.rds"))
 ```
 
 ### Diagnose potential non-convergence of the MCMC algorithm
@@ -90,7 +92,8 @@ bayesplot::mcmc_trace(model_50783$m_fit$draws(pars_to_plot))
 model_50783$m_fit$summary(pars_to_plot)
 ```
 
-* Trace plots for some parameters show a bit more between-chain variation than is typical, but all R~hat~ values are 1.00
+* With adapt_delta = 0.8, trace plots for some parameters show a bit more between-chain variation than is typical and R~hat~ for alpha_lamda is $\ge 1.01.
+* When rerun with adapt_delta = 0.99, R~hat~ values were all $\lt 1.01. Trace plots still show more variability than usual. 
 
 ## Visualize model results
 
@@ -122,5 +125,5 @@ p1 / p2
 
 ### Save custom plots
 ```{r save-plot}
-ggsave(here::here("out", "50783_mrmr_plots.png"), height = 5, width = 6.5)
+ggsave(here("out", "plots", "50783_mrmr_plots.png"), height = 5, width = 6.5)
 ```
