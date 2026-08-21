@@ -36,8 +36,8 @@ surveys <- read_csv(here::here("data", "clean", "72808_survey.csv"))
 ### 
 # alternatively, use the non-version controlled 72808 data up to 2026 that ALL created on 8/14, but pulling from the pCloud drive not the SNARL1-github repository
 
-# captures <- read_csv( "P:/MLRG/field_season/within-season-data-needs/72808_capture.csv")
-# surveys <- read_csv( "P:/MLRG/field_season/within-season-data-needs/72808_survey.csv")
+captures <- read_csv( "P:/MLRG/field_season/within-season-data-needs/72808_capture.csv")
+surveys <- read_csv( "P:/MLRG/field_season/within-season-data-needs/72808_survey.csv")
 
 ```
 
@@ -55,8 +55,8 @@ model_72808 <- fit_model(
                     chains = 4, 
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
-                    threads_per_chain = 12, 
-                    adapt_delta = 0.99) # to prevent writing to a locked system directory 
+                    threads_per_chain = 2, 
+                    adapt_delta = 0.8) # 
 
 ```
 * Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).
@@ -110,5 +110,5 @@ p1 / p2
 
 ### Save custom plots
 ```{r save-plot}
-ggsave(here::here("out", "72808_mrmr_plots.png"), width = 6.5, height = 7.2)
+ggsave(here::here("out", "plots", "72808_mrmr_plots.png"), width = 6.5, height = 7.2)
 ```
