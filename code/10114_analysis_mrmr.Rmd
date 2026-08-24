@@ -39,7 +39,7 @@ library(patchwork)
 ```{r create-data-objects}
 captures <- read_csv(here::here("data", "clean", "10114_capture.csv"))
 surveys <- read_csv(here::here("data", "clean", "10114_survey.csv"))
-translocations <- read_csv(here::here("data", "clean", "10114_reintroduction.csv"))
+translocations <- read_csv(here::here("data", "clean", "10114_reintroduction.csv")) 
 ```
 
 ## Check datasets

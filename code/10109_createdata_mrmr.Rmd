@@ -26,6 +26,68 @@ library(lubridate)
 library(assertthat)
 # options(readr.show_col_types = FALSE)
 ```
+--- 
+
+## Create current-year survey, capture, and translocation/reintroduction datasets for appending
+- Copied the following two code chunks into the "10109_createdata_mrmr.Rmd" script.  
+- relies on the manual download/filtering of current year [2026] Fulcrum data (as desribed in the 'fulcrum_data_append.Rmd' file)
+
+```{r create_current_year_data_objects}
+visit_10109_current <- read_csv(here::here("data", "raw", "current_year", "survey_10109.csv")) %>% 
+  select(record_id, site_id, visit_date, visit_status, visit_comment) %>% 
+  rename(comment_visit = visit_comment)
+
+survey_10109_current <- read_csv(here::here("data", "raw", "current_year", "survey_description_10109.csv")) %>% 
+  select(record_id, survey_type, survey_description, wind, sky, air_temp, duration, survey_quality, general_survey_comment) %>% 
+  filter(survey_type == "cmr") %>% 
+  rename(description = survey_description, comment_survey = general_survey_comment)
+
+amphibian_capture_10109_current <- read_csv(here::here("data", "raw", "current_year", "survey_amphibian_capture_10109.csv")) %>% 
+  filter(method == "cmr") %>% 
+  rename(comment_capture = capture_comment) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
+  replace_na(list(species = "ramu", capture_life_stage = "adult")) %>% 
+  select(record_id, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_capture)
+
+relocate_10109_current <- read_csv(here::here("data", "raw", "current_year", "relocate_10109.csv")) %>% 
+  filter(relocate_type == "release") %>% #
+  rename(comment_release = release_comments,
+         type = relocate_type) %>% 
+  select(record_id, release_site_id, type, date, comment_release)
+
+relocate_amphibians_10109_current <- read_csv(here::here("data", "raw", "current_year", "relocate_relocated_individual_10109.csv")) %>% 
+  mutate(pit_tag_ref = as.character(pit_tag_ref)) %>% 
+  # rename(relocate_amphibians_comments = comments) %>% 
+  select(record_id, pit_tag_id=pit_tag_ref, tag_new, life_stage, sex, length, weight, swab_id, comments)
+```
+```{r join-current-year-tables-together-to-make-appendable-objects}
+survey_append_10109 <- visit_10109_current %>% 
+  inner_join(survey_10109_current, by = c("record_id")) %>% 
+  select(-record_id) |> 
+  mutate(visit_date=mdy(visit_date))
+
+capture_append_10109 <- visit_10109_current %>% 
+  inner_join(survey_10109_current, by = c("record_id")) %>% 
+  inner_join(amphibian_capture_10109_current, by = c("record_id")) %>% 
+  select(-record_id) |> 
+  mutate(visit_date=mdy(visit_date))
+
+reintroduction_append_10109 <- relocate_10109_current %>% 
+  inner_join(relocate_amphibians_10109_current, by = c("record_id")) %>% 
+  rename(site_id = release_site_id, 
+         capture_life_stage = life_stage) %>% 
+  mutate(date = mdy(date)) |> 
+  select(-record_id)
+```
+
+### Clean up environment
+
+```{r}
+rm(amphibian_capture_10109, relocate_10109, relocate_amphibians_10109, survey_10109, visit_10109)
+```
+
+
+---
 
 ## Retrieve data from PostgreSQL database
 
@@ -34,47 +96,46 @@ library(assertthat)
 - When connecting via SSH, open external connection to database, then replace "Sys.getenv" with "rstudioapi::askForPassword" for host and port, run chunk.   
 - Users without credentials can use CSV files created in code chunk "save-raw-data-files" below as a starting point.  
 
-```{r db-connect}
+```{r db-connect-set-schemas}
 con = dbConnect(dbDriver("PostgreSQL"),
                 host = Sys.getenv("host"), 
                 port = Sys.getenv("port"), 
                 dbname = Sys.getenv("dbname"),
                 user = rstudioapi::askForPassword("user name"),
                 password = rstudioapi::askForPassword("password")
-               )
+                # options = "-c search_path=field_surveys" # add this to access the schema for all tables; versus setting schema as each table is accessed and assigned
+                )
+DBI::dbExecute(con, "SET search_path TO field_surveys, qpcr") # now the schemas are set, in order of query priority
+DBI::dbListTables(con) # to test the connection and schemas
+
 ```
 
 ### Retrieve translocation/reintroduction data from database
 
-- Skip if translocations and/or reintroductions are not relevant.  
 - Edit "where" statement to include relevant site_ids and types.  
 
-```{sql retrieve_translocation_data, connection=con, output.var = "reintroduction_10109"}
+```{sql retrieve_reintro_data, connection=con, output.var = "reintroduction_10109"}
 select 
-  release_siteid1, 
-  release_date, 
-  type, 
-  pit_tag_ref, 
-  tag_new,
-  sex,
-  length,
-  weight,
-  swab_id,
-  relocate.comment as comment_relocate,
-  relocate_frog.comment as comment_relocate_frog,
-  relocate.id as relocate_id,
-  relocate_frog.id as relocate_frog_id
-from relocate
-inner join relocate_frog on relocate.id = relocate_id
-where release_siteid1 in (10109, 10110, 11896) and
-      type = 'reintroduction'  
+  visit.site_id, 
+  release.release_type AS type,
+  visit.visit_date AS release_date,
+  release_frog.pit_tag_ref AS pit_tag_id, 
+  release_frog.tag_new, 
+  release_frog.sex, 
+  release_frog.length, 
+  release_frog.weight, 
+  release_frog.swab_id, 
+  release_frog.bd_exposure
+from release_frog
+INNER JOIN release ON release_frog.release_id = release.release_id
+INNER JOIN visit ON release.visit_id = visit.visit_id
+where visit.site_id in (10109, 10110, 11896) 
 ```
 
 ### Retrieve survey data from database
 
 - Edit "where" statement to include relevant site_ids and types.
 - If some relevant surveys are classified as "ves", include in "where" statement. 
-
 ```{sql retrieve-survey-data, connection=con, output.var = "survey_10109"}
 select 
   site_id, 
@@ -87,41 +148,51 @@ select
   sky,
   air_temp,
   duration,
-  visit.comment as comment_visit,
-  survey.comment as comment_survey
+  visit_comment,
+  survey_comment
 from visit
-inner join survey on visit.id = visit_id
-where site_id in (10109, 10110, 11896) and
-      survey_type = 'cmr'
+inner join survey on visit.visit_id = survey.visit_id
+where site_id in (10109, 10110, 11896) AND 
+      survey_type in ('cmr', 'visual') AND
+      visit_date > '2020-01-01'
+```
+```{r}
+view(survey_10109)
 ```
 
 ### Retrieve frog capture data from database
 
 - Edit "where" statement to include relevant site_ids and types. 
-
 ```{sql retrieve-capture-data, connection=con, output.var = "capture_10109"}
 select 
-  site_id, 
-  visit_date, 
-  visit_status, 
-  survey_type, 
-  pit_tag_ref, 
-  tag_new, 
-  species, 
-  capture_life_stage, 
-  capture_animal_state, 
-  length, 
-  visit.comment as comment_visit,
-  survey.comment as comment_survey,
-  capture_survey.comment as comment_capture,
-  visit.id as visit_id,
-  survey.id as survey_id,
-  capture_survey.id as capture_id
+  visit.site_id, 
+  visit.visit_date, 
+  visit.visit_status, 
+  survey.survey_type, 
+  capture_survey.pit_tag_ref AS pit_tag_id, 
+  capture_survey.tag_new, 
+  capture_survey.species, 
+  capture_survey.capture_life_stage, 
+  capture_survey.capture_animal_state, 
+  capture_survey.length,
+  capture_survey.weight,
+  visit.visit_comment,
+  survey.survey_comment,
+  capture_survey.capture_survey_comment,
+  visit.visit_id,
+  survey.survey_id,
+  capture_survey.capture_survey_id,
+  capture_survey.swab_id,
+  bd_load.bd_load
 from visit
-inner join survey on visit.id = visit_id
-inner join capture_survey on survey.id = survey_id
+inner join survey on visit.visit_id = survey.visit_id
+inner join capture_survey on survey.survey_id = capture_survey.survey_id
+left join bd_load on bd_load.sample_id = capture_survey.swab_id
 where site_id in (10109, 10110, 11896) and
-      survey_type = 'cmr'
+      survey_type in ('cmr')
+```
+```{r}
+view(capture_10109)
 ```
 
 ```{r db-disconnect3}
@@ -129,6 +200,9 @@ dbDisconnect(con)
 rm(con)
 ```
 
+### append current year data
+
+### Review data
 - Review retrieved datasets before using in subsequent chunks.  
 
 ### Save raw data files
@@ -138,89 +212,110 @@ survey_10109 %>% write_csv(here::here("data", "raw", "10109_survey_raw.csv"))
 capture_10109 %>% write_csv(here::here("data", "raw", "10109_capture_raw.csv"))
 ```
 
-- Read saved files with (for example): translocation_10109 <- read_csv(here::here("data", "raw", "10109_translocation_raw.csv")) %>% 
-  mutate(pit_tag_ref = as.character(pit_tag_ref))
-
+- Read saved files with (for example): 
+```{r reread-saved-raw-data}
+reintroduction_10109 <- read_csv(here::here("data", "raw", "10109_reintroduction_raw.csv")) %>% 
+  mutate(pit_tag_id = as.character(pit_tag_id), 
+         type="release") |> 
+  rename(date=release_date)
+```
 ## Create translocation/reintroduction dataset
 
 - Skip if translocations/reintroductions are not relevant.  
 
 ### Retain only relevant columns
 
-```{r translocation-relevant-columns}
-translocation_10109 <- reintroduction_10109 %>% 
-  rename(site_id = release_siteid1) %>% 
-  select(site_id, release_date, type, pit_tag_ref, tag_new, sex, length, weight, swab_id)
+```{r reintroduction-relevant-columns}
+reintroduction_10109 <- reintroduction_10109 %>% 
+  select(site_id, date, type, pit_tag_id, tag_new, sex, length, weight, swab_id)
+```
+## Append current-year translocation records
+
+-  If translocations are relevant, copy the following code chunk and insert immediately following the "translocation-relevant-columns" code chunk in "xxxxx_createdata_mrmr.Rmd".   
+
+```{r append_currentyear_translocation_records}
+reintroduction_10109 <- reintroduction_append_10109 %>% 
+  filter(type == "release") %>% # options are "translocation" or "reintroduction"
+  select(site_id, date, type, pit_tag_id, tag_new, sex, length, weight, swab_id) %>% 
+  bind_rows(reintroduction_10109) |> 
+  unique()
 ```
 
-### Translocation data checks
+### Reintroduction data checks
 
 - Run checks before and after data cleaning (next code chunk) to ensure that all issues have been resolved.  
 - Run lines of code one at a time to allow easy evaluation of messages and outputs.  
 
-```{r translocation-data-checks, message=FALSE}
+```{r reintroduction-data-checks, message=FALSE}
 # Check for records where pit_tag_ref is NULL
-assert_that(noNA(translocation_10109$pit_tag_ref))
+assert_that(noNA(reintroduction_10109$pit_tag_id))
 
 # Check for records containing pit tags shorter than 15 characters
-assert_that(!any(nchar(translocation_10109$pit_tag_ref) != 15))
+assert_that(!any(nchar(reintroduction_10109$pit_tag_id) != 15))
 
 # Check for records containing pit tags that end with ".1" (known to be potentially incorrect) 
-assert_that(!any(str_detect(translocation_10109$pit_tag_ref, "\\.1$")))
+assert_that(!any(str_detect(reintroduction_10109$pit_tag_id, "\\.1$")))
 
 # Check for records of subadult frogs
-translocation_10109 %>% drop_na(length) %>% filter(length < 40)
+reintroduction_10109 %>% drop_na(length) %>% filter(length < 40)
 
 # Check for duplicate pit tags on each date
-translocation_10109 %>% count(release_date, pit_tag_ref) %>% filter(n > 1)
+reintroduction_10109 %>% count(date, pit_tag_id) %>% filter(n > 1)
 
 # Are release dates correct?
-translocation_10109 %>% distinct(release_date) %>% glimpse()
+reintroduction_10109 %>% distinct(date) %>% glimpse()
 ```
 
-### Clean translocation data
+### Clean reintroduction data
 
 - Edit data-cleaning code as necessary.  
 
-```{r clean-translocation-data}
-translocation_10109 <- translocation_10109 %>% 
-  filter(!is.na(pit_tag_ref))
+```{r clean-reintroduction-data}
+reintroduction_10109 <- reintroduction_10109 %>% 
+  filter(!is.na(pit_tag_id))
 ```
 
-### Create final translocation dataset formatted for mrmr
+### Create final reintroduction dataset formatted for mrmr
 
-```{r final-translocation-data}
-translocation_10109 <- translocation_10109 %>% 
-  rename(pit_tag_id = pit_tag_ref) %>% 
-  arrange(release_date, pit_tag_id) %>% 
-  select(site_id, type, release_date, pit_tag_id)
+```{r final-reintroduction-data}
+reintroduction_10109 <- reintroduction_10109 %>% 
+  # rename(pit_tag_id = pit_tag_ref) %>% 
+  arrange(date, pit_tag_id) %>% 
+  select(site_id, type, date, pit_tag_id)
 ```
 
 ### Save cleaned translocation data
 
 ```{r save-cleaned-translocation-data, message=FALSE}
-translocation_10109 %>% write_csv(here::here("data", "clean", "10109_translocation.csv"))
+reintroduction_10109 %>% write_csv(here::here("data", "clean", "10109_reintroduction.csv"))
 ```
-
-- When reading dataset, format pit_tag_id as character.  
 
 ## Create survey dataset
 
 ### Include only relevant surveys
 
-- When multiple numbered sites exist in survey area, include only one survey for entire site on each survey date. 
+Multiple numbered sites exist in the 10109 survey area, so we include only one survey for entire site on each survey date. Other sites include:
+10110
+11896
 
 #### Primary site surveyed during each secondary period?
 
 - If yes, code chunk will return zero records. Exclude other records as necessary. 
 - In filter statement, edit site_id as necessary.
 
+### Append current-year survey records
+- Copy the following code chunk and insert immediately before the "check-survey-history" code chunk in "10109_createdata_mrmr.Rmd".  
+
+```{r append_currentyear_survey_records}
+survey_10109_build <- bind_rows(survey_10109, survey_append_10109) %>% 
+  arrange(visit_date, desc(site_id)) %>% 
+  select(site_id, visit_date, visit_status, survey_type, description, survey_quality, wind, sky, air_temp, duration, comment_visit, comment_survey)
+```
+
 ```{r check-survey-history}
-survey_10109 %>% 
+survey_10109_build %>% 
   add_count(visit_date) %>% 
   filter(n == 1 & site_id != "10109")
-
-
 ```
 
 #### Include only surveys at primary site
@@ -228,20 +323,21 @@ survey_10109 %>%
 - Run this code chunk as is when only CMR surveys need to be included. If VES surveys also need to be included, modify code accordingly. 
 
 ```{r include-relevant-surveys}
-survey_10109 <- survey_10109 %>% 
+survey_10109_build <- survey_10109_build %>% 
   filter(site_id %in% c( 10109 ) ) %>%
   rename(survey_date = visit_date) %>% 
-  arrange(survey_date)
+  arrange(survey_date)|> 
+  filter(survey_type=="cmr")
 ```
 
 ### Add translocation/reintroduction dates as surveys
 
 - Skip if translocations/reintroductions are not relevant.  
 
-```{r add-translocation-surveys}
-survey_10109 <- translocation_10109 %>% 
-  distinct(site_id, release_date, type) %>% 
-  rename(survey_type = type, survey_date = release_date) %>% bind_rows(survey_10109) %>% 
+```{r add-reintroduction-dates-as-surveys}
+survey_10109_build <- reintroduction_10109 %>% 
+  distinct(site_id, date, type) %>% 
+  rename(survey_type = type, survey_date = date) %>% bind_rows(survey_10109_build) %>% 
   arrange(survey_date) 
 ```
 
@@ -252,10 +348,10 @@ survey_10109 <- translocation_10109 %>%
 
 ```{r survey-data-checks}
 # Check for duplicate survey dates
-survey_10109 %>% count(site_id, survey_date) %>% filter(n > 1)
+survey_10109_build %>% count(site_id, survey_date) %>% filter(n > 1)
 
 # Check for sites that were unsuitable for survey
-survey_10109 %>% filter(visit_status != "suitable")
+survey_10109_build %>% filter(visit_status != "suitable")
 ```
 
 ### Clean survey data
@@ -264,7 +360,7 @@ survey_10109 %>% filter(visit_status != "suitable")
 
 ```{r clean-survey-data}
 # Drop duplicate surveys
-survey_10109 <- survey_10109 %>% 
+survey_10109_build <- survey_10109_build %>% 
   distinct(survey_date, .keep_all = TRUE)
 ```
 
@@ -275,16 +371,26 @@ survey_10109 <- survey_10109 %>%
 #### For robust design dataset
 
 ```{r create-period-columns1}
-survey_10109 <- survey_10109 %>%
+survey_10109 <- survey_10109_build %>%
   select(site_id, survey_date, survey_type) %>% 
-  mutate(primary_period = case_when(survey_date == "2021-07-28" ~ 1,
+  mutate(primary_period = case_when(# 2021
+                                    survey_date == "2021-07-28" ~ 1,
+                                    # 2022
                                     between(survey_date, ymd("2022-07-18"), ymd("2022-07-20")) ~ 2,
                                     survey_date == "2022-07-21" ~ 3,
+                                    # 2023
                                     between(survey_date, ymd("2023-08-25"), ymd("2023-08-27")) ~ 4,
                                     survey_date == "2023-08-28" ~ 5,
+                                    # 2024
                                     between(survey_date, ymd("2024-07-15"), ymd("2024-07-17")) ~ 6,
                                     survey_date == "2024-07-19" ~ 7,
-                                    between(survey_date, ymd("2024-09-06"), ymd("2024-09-07")) ~ 8 #,
+                                    between(survey_date, ymd("2024-09-06"), ymd("2024-09-07")) ~ 8, #,
+                                    # 2025
+                                    between(survey_date, ymd("2025-08-08"), ymd("2025-08-10")) ~ 9, #,
+                                    # 2026
+                                    between(survey_date, ymd("2026-07-14"), ymd("2026-07-16")) ~ 10, #,
+                                    survey_date == "2026-07-17" ~ 11,
+                                    between(survey_date, ymd("2026-08-15"), ymd("2026-08-17")) ~ 12 #,
                                     )
          )
                                     
@@ -310,9 +416,20 @@ survey_10109 %>% write_csv(here::here("data", "clean", "10109_survey.csv"))
 # in 2022 and 2023, 6 out of 16 day time CMR captures occurred outside of 10109
 
 capture_10109 <- capture_10109 %>% 
-  select(-visit_id, -survey_id, -capture_id) %>% 
+  select(-visit_id, -survey_id, -capture_survey_id) %>% 
   mutate(site_id = 10109 )
 ```
+
+### Append current-year capture records
+
+- Copy the following code chunk and insert immediately following the "capture-relevant-columns" code chunk in "xxxxx_createdata_mrmr.Rmd".
+```{r append_currentyear_capture_records}
+capture_10109_build <- capture_append_10109 %>% 
+  select(site_id, visit_date, visit_status, survey_type, pit_tag_ref, tag_new, species, capture_life_stage, capture_animal_state, length, comment_visit, comment_survey, comment_capture) %>% 
+  rename(pit_tag_id=pit_tag_ref) |> 
+  bind_rows(capture_10109)
+```
+
 
 ### Capture data checks
 
@@ -321,52 +438,52 @@ capture_10109 <- capture_10109 %>%
 
 ```{r capture-data-checks, message=FALSE}
 # Check for records where pit_tag_ref is NULL
-assert_that(noNA(capture_10109$pit_tag_ref))
+assert_that(noNA(capture_10109_build$pit_tag_ref))
 
 # Check for records containing pit tags shorter than 15 characters (or 9 for early sites)
-assert_that(!any(nchar(capture_10109$pit_tag_ref) != 15))
+assert_that(!any(nchar(capture_10109_build$pit_tag_ref) != 15))
 
 # Check for records containing pit tags that end with ".1" (known to be potentially incorrect) 
-assert_that(!any(str_detect(capture_10109$pit_tag_ref, "\\.1$")))
+assert_that(!any(str_detect(capture_10109_build$pit_tag_ref, "\\.1$")))
 
 # Check for records where species != ramu
-capture_10109 %>% drop_na(species) %>% filter(species != "ramu")
+capture_10109_build %>% drop_na(species) %>% filter(species != "ramu")
 
 # Check for records were survey_type = swab
-assert_that(!any(capture_10109$survey_type == "swab"))
+assert_that(!any(capture_10109_build$survey_type == "swab"))
 
 # Check for records where capture_animal_state is NULL
-assert_that(noNA(capture_10109$capture_animal_state))
+assert_that(noNA(capture_10109_build$capture_animal_state))
 
 # Check for records where capture_animal_state == "dead"
-assert_that(!any(capture_10109$capture_animal_state == "dead"))
+assert_that(!any(capture_10109_build$capture_animal_state == "dead"))
 ### resolved by removing dead frogs in next chunk
 
 # Check for records of subadult frogs
-capture_10109 %>% drop_na(length) %>% filter(length < 40)
+capture_10109_build %>% drop_na(length) %>% filter(length < 40)
 
 # Check for sites that were unsuitable for survey
-assert_that(!any(capture_10109$visit_status != "suitable"))
+assert_that(!any(capture_10109_build$visit_status != "suitable"))
 
 # Check for duplicate capture records on each date
-capture_10109 %>% count(visit_date, pit_tag_ref) %>% filter(n > 1)
+capture_10109_build %>% count(visit_date, pit_tag_id) %>% filter(n > 1)
 
 # Check for captures that lack associated surveys
 survey_10109 %>% 
   select(survey_date, primary_period) %>% 
   rename(visit_date = survey_date) %>% 
-  right_join(capture_10109, by = c("visit_date")) %>% 
+  right_join(capture_10109_build, by = c("visit_date")) %>% 
   filter(is.na(primary_period))
 
 # Simpler alternative
-setdiff(capture_10109$visit_date, survey_10109$survey_date) %>% as.Date(origin = "1970-01-01")
+setdiff(capture_10109_build$visit_date, survey_10109$survey_date) %>% as.Date(origin = "1970-01-01")
 
 # Check for surveys that lack associated captures
 survey_10109 %>% 
   filter(survey_type == "cmr") %>% 
   select(survey_date, primary_period) %>% 
   rename(visit_date = survey_date) %>% 
-  left_join(capture_10109, by = c("visit_date")) %>% 
+  left_join(capture_10109_build, by = c("visit_date")) %>% 
   filter(is.na(species))
 ## output: no frogs observed at 10109 or neighbors on first-ever CMR survey date 2022-07-18
 ```
@@ -376,15 +493,17 @@ survey_10109 %>%
 - Edit data-cleaning code as necessary.  
 
 ```{r clean-capture-data}
-capture_10109 <- capture_10109 %>% 
+capture_10109_build <- capture_10109_build %>% 
   filter(capture_animal_state != "dead")
 ```
 
 
 ```{r final-capture-data}
-capture_10109 <- capture_10109 %>%
-  rename(survey_date = visit_date, pit_tag_id = pit_tag_ref) %>%
-  arrange(survey_date, pit_tag_id) %>%
+capture_10109 <- capture_10109_build %>%
+  rename(survey_date = visit_date #, 
+         # pit_tag_id = pit_tag_ref
+         ) %>%
+  arrange(survey_date, pit_tag_id) |> 
   select(site_id, survey_date, pit_tag_id)
 ```
 
@@ -401,4 +520,9 @@ Covariates that might affect the probability of detection can be included via th
 
 ### Individual-level survival covariates 
 Covariates that may affect individual level survival can be included optionally via the survival_formula and survival_fill_value arguments
+
+```{r build-covariates as needed}
+
+```
+
 

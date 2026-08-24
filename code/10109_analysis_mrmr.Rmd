@@ -37,7 +37,8 @@ library(patchwork)
 ```{r create-data-objects}
 captures <- read_csv(here::here("data", "clean", "10109_capture.csv"))
 surveys <- read_csv(here::here("data", "clean", "10109_survey.csv"))
-translocations <- read_csv(here::here("data", "clean", "10109_translocation.csv"))
+translocations <- read_csv(here::here("data", "clean", "10109_reintroduction.csv")) |> 
+  rename(release_date=date)
 ```
 
 ## Check datasets
@@ -57,7 +58,9 @@ model_10109 <- fit_model(
                     chains = 4, 
                     parallel_chains = 4, 
                     cpp_options = list(stan_threads = TRUE),
-                    threads_per_chain = 2) 
+                    threads_per_chain = 2, 
+                    adapt_delta = 0.8) 
+
 ```
 
 - Running model with default adapt_delta (0.8) resulted in zero divergent transition (0/4000).  
@@ -118,10 +121,27 @@ p2 <- p2 + ggtitle("B. Population size") +
   
 p3 <- plot_model(model_10109, what = "recruitment")
 p3 <- p3 + ggtitle("C. Recruitment") +
-    ylab("Number of adults")
+    ylab("Number of adults") 
   
 p1 / p2 / p3
 ```
+
+This looks like the yearly pre-reintroduction abundances were approximately:
+2022: 20
+2023: 10
+2024: 5
+2025: 10
+2026: 30
+
+and, annual recruitment is approximately
+2022: 0
+2023: 0
+2024: 1
+2025: 6
+2026: 30
+
+If the estimated abundance is 30 and the recruiment is 30, does this suggest that the population consisted of entirely new recruits prior to 2026 reintroduction? Does it actually track the survival of previous natural recruits? How do you extract those exact estimates from the model object?
+
 
 ### Save custom plots
 
@@ -136,10 +156,21 @@ ggsave(here::here("out", "plots", "10109_mrmr_plots.png"), width = 6.5, height =
 
 ```{r survival-tables}
 survival_cohort <- survival_table(model_10109, by_cohort = TRUE)
-survival_cohort
-
+survival_cohort |> 
+  mutate(release_year = lubridate::year(release_date)) |> 
+  select(release_year, years_since_introduction, median_survival, lo_survival, hi_survival) |> 
+  arrange(release_year, years_since_introduction) |> 
+  filter(years_since_introduction > 0)
+  
 survival_ind <- survival_table(model_10109, by_individual = TRUE) 
-survival_ind
+survival_ind |> 
+  mutate(release_year = lubridate::year(release_date)) |> 
+  select(release_year, years_since_introduction, median_survival, lo_survival, hi_survival) |> 
+  arrange(release_year, years_since_introduction) |> 
+  filter(years_since_introduction > 0)
+
+
+
 ```
 
 ### Save survival tables
