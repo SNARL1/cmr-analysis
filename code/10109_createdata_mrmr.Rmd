@@ -21,6 +21,7 @@ If these recently-collected data are necessary (e.g., for preliminary analyses),
 
 ```{r load-packages}
 library(tidyverse)
+library(tinytable)
 library(RPostgreSQL)
 library(lubridate)
 library(assertthat)

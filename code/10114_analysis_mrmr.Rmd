@@ -153,3 +153,21 @@ survival_ind
 survival_cohort %>% write_csv(here::here("out", "tables", "10114_survival_cohort.csv"))
 survival_ind %>% write_csv(here::here("out", "tables", "10114_survival_ind.csv"))
 ```
+
+### Obtain and view abudance estimate values
+```{r obtain-values-for-abundance }
+# used `plot_model` with no parentheses to look under the hood and pull out this script that returns the values of the abundance estimates before they are piped to ggplot.
+
+model_10114$m_fit$draws("N", format = "draws_df") %>% 
+                tidyr::pivot_longer(tidyselect::starts_with("N")) %>% 
+                suppressWarnings() %>% 
+                mutate(get_numeric_indices(.data$name), primary_period = .data$index_1 + 1) %>%
+                group_by(.data$primary_period) %>% 
+                summarize(lo = quantile(.data$value, 0.025), 
+                          med = median(.data$value), 
+                          hi = quantile(.data$value, 0.975), 
+                          .groups = "drop") %>% 
+                # left_join(survey_prim_periods, by = "primary_period") |> 
+  mutate(across(where(is.numeric), trunc)) |> 
+  tt()
+```

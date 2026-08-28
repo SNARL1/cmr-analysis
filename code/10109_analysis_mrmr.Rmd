@@ -72,6 +72,7 @@ model_10109 <- fit_model(
 
 ```{r write-model}
 write_rds(model_10109, here::here("out", "model", "10109_model.rds"), "xz", compression = 9L)
+model_10109 <- read_rds(here::here("out", "model", "10109_model.rds"))
 ```
 
 - To read model file, use "model_10109 <- read_rds(here::here("out", "model", "10109_model.rds"))"
@@ -89,6 +90,8 @@ pars_to_plot <- c('alpha_lambda',
 bayesplot::mcmc_trace(model_10109$m_fit$draws(pars_to_plot))
 
 model_10109$m_fit$summary(pars_to_plot)
+
+model_10109$m_fit$summary()
 ```
 
 ## Visualize model results
@@ -169,8 +172,6 @@ survival_ind |>
   arrange(release_year, years_since_introduction) |> 
   filter(years_since_introduction > 0)
 
-
-
 ```
 
 ### Save survival tables
@@ -178,5 +179,22 @@ survival_ind |>
 ```{r save-survival-tables}
 survival_cohort %>% write_csv(here::here("out", "tables", "10109_survival_cohort.csv"))
 survival_ind %>% write_csv(here::here("out", "tables", "10109_survival_ind.csv"))
+```
+
+```{r obtain-values-for-abudance }
+# used `plot_model` with no parentheses to look under the hood and pull out this script that returns the values of the abundance estimates before they are piped to ggplot.
+
+model_10109$m_fit$draws("N", format = "draws_df") %>% 
+                tidyr::pivot_longer(tidyselect::starts_with("N")) %>% 
+                suppressWarnings() %>% 
+                mutate(get_numeric_indices(.data$name), primary_period = .data$index_1 + 1) %>%
+                group_by(.data$primary_period) %>% 
+                summarize(lo = quantile(.data$value, 0.025), 
+                          med = median(.data$value), 
+                          hi = quantile(.data$value, 0.975), 
+                          .groups = "drop") %>% 
+                # left_join(survey_prim_periods, by = "primary_period") |> 
+  mutate(across(where(is.numeric), trunc)) |> 
+  tt()
 ```
 
